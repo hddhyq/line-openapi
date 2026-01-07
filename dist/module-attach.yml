@@ -1,0 +1,99 @@
+openapi: 3.0.0
+info:
+  title: LINE 消息 API
+  version: 0.0.1
+  description: 本文档描述了 LINE 消息 API。
+servers:
+  - url: https://manager.line.biz
+security:
+  - basicAuth: []
+tags:
+  - name: line-module-attach
+paths:
+  /module/auth/v1/token:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#link-attach-by-operation-module-channel-provider
+      tags:
+        - line-module-attach
+      operationId: attachModule
+      description: 通过模块渠道商的操作进行附着
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              description: AttachModule 的请求
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                  description: 授权码
+                  example: authorization_code
+                code:
+                  type: string
+                  description: 从 LINE 平台收到的授权码。
+                redirect_uri:
+                  type: string
+                  description: 指定URL中指定的redirect_uri进行认证授权。
+                code_verifier:
+                  type: string
+                  description: 当使用 OAuth 2.0 扩展规范中定义的 PKCE（代码交换证明密钥）作为针对授权代码拦截攻击的对策时指定。
+                client_id:
+                  type: string
+                  description: |-
+                    Instead of using Authorization header, you can use this parameter to specify the channel ID of the module channel.
+                     您可以在 LINE 开发者控制台中找到模块通道的通道 ID。
+                client_secret:
+                  type: string
+                  description: |-
+                    您可以使用此参数来指定模块通道的通道机密，而不是使用 Authorization 标头。 
+                    您可以在 LINE 开发者控制台中找到模块通道的通道密钥。
+                region:
+                  type: string
+                  description: 如果您在认证和授权的URL中指定了区域值，请指定相同的值。
+                basic_search_id:
+                  type: string
+                  description: 如果您在用于身份验证和授权的 URL 中指定了 basic_search_id 的值，请指定相同的值。
+                scope:
+                  type: string
+                  description: 如果您在用于身份验证和授权的 URL 中指定了范围值，请指定相同的值。
+                brand_type:
+                  type: string
+                  description: 如果您在用于身份验证和授权的URL中指定了brand_type的值，请指定相同的值。
+              required:
+                - grant_type
+                - code
+                - redirect_uri
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttachModuleResponse"
+              example:
+                bot_id: U45c5c51f0050ef0f0ee7261d57fd3c56
+                scopes:
+                  - message:send
+                  - message:receive
+          description: 好的
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    AttachModuleResponse:
+      description: 通过模块渠道商的操作进行附着
+      required:
+        - bot_id
+        - scopes
+      properties:
+        bot_id:
+          type: string
+          description: LINE 官方账号上机器人的用户 ID。
+        scopes:
+          type: array
+          description: LINE 官方帐号管理员授予的权限（范围）。
+          items:
+            type: string

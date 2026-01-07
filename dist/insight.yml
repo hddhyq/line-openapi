@@ -1,0 +1,815 @@
+openapi: 3.0.0
+info:
+  title: LINE 消息 API(Insight)
+  version: 0.0.1
+  description: 本文档描述了 LINE Messaging API(Insight)。
+servers:
+  - url: https://api.line.me
+security:
+  - Bearer: []
+tags:
+  - name: insight
+paths:
+  /v2/bot/insight/demographic:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-demographic
+      tags:
+        - insight
+      operationId: getFriendsDemographics
+      description: |-
+        检索 LINE 官方帐户的人口统计属性
+         好友。您只能检索 LINE 官方好友的信息
+         日本 (JP)、泰国 (TH)、台湾 (TW) 和印度尼西亚的用户创建的帐户
+         （身份证）。
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetFriendsDemographicsResponse"
+              example:
+                available: true
+                genders:
+                  - gender: unknown
+                    percentage: 37.6
+                  - gender: male
+                    percentage: 31.8
+                  - gender: female
+                    percentage: 30.6
+                ages:
+                  - age: unknown
+                    percentage: 37.6
+                  - age: from50
+                    percentage: 17.3
+                areas:
+                  - area: unknown
+                    percentage: 42.9
+                  - area: 徳島
+                    percentage: 2.9
+                appTypes:
+                  - appType: ios
+                    percentage: 62.4
+                  - appType: android
+                    percentage: 27.7
+                  - appType: others
+                    percentage: 9.9
+                subscriptionPeriods:
+                  - subscriptionPeriod: over365days
+                    percentage: 96.4
+                  - subscriptionPeriod: within365days
+                    percentage: 1.9
+                  - subscriptionPeriod: within180days
+                    percentage: 1.2
+                  - subscriptionPeriod: within90days
+                    percentage: 0.5
+                  - subscriptionPeriod: within30days
+                    percentage: 0.1
+                  - subscriptionPeriod: within7days
+                    percentage: 0
+          description: 好的
+  /v2/bot/insight/message/delivery:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-number-of-delivery-messages
+      tags:
+        - insight
+      operationId: getNumberOfMessageDeliveries
+      description: |-
+        返回从 LINE 官方帐号发送的消息数量
+         在指定的一天。
+      parameters:
+        - in: query
+          name: date
+          description: |-
+            检索已发送消息数的日期。 
+            - 格式：yyyyMMdd（例如 20191231）
+             - 时区：UTC+9
+          required: true
+          schema:
+            type: string
+            pattern: ^[0-9]{8}$
+            minLength: 8
+            maxLength: 8
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetNumberOfMessageDeliveriesResponse"
+              example:
+                status: ready
+                broadcast: 5385
+                targeting: 522
+          description: 好的
+      summary: 获取消息发送次数
+  /v2/bot/insight/followers:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-number-of-followers
+      tags:
+        - insight
+      summary: 获取关注者数量
+      description: |-
+        返回已添加LINE官方帐户的用户数量
+         在指定日期或之前。
+      operationId: getNumberOfFollowers
+      parameters:
+        - in: query
+          name: date
+          required: false
+          description: |-
+            检索关注者数量的日期。 
+
+            格式：yyyyMMdd（例如 20191231）
+             时区：UTC+9
+          schema:
+            type: string
+            pattern: ^[0-9]{8}$
+            maxLength: 8
+            minLength: 8
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetNumberOfFollowersResponse"
+              example:
+                status: ready
+                followers: 7620
+                targetedReaches: 5848
+                blocks: 237
+  /v2/bot/insight/message/event:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-message-event
+      tags:
+        - insight
+      description: |-
+        返回有关用户如何与窄播消息交互的统计信息
+         或广播从您的 LINE 官方帐户发送的消息。
+      summary: 获取用户交互统计信息
+      operationId: getMessageEvent
+      parameters:
+        - in: query
+          name: requestId
+          required: true
+          description: |-
+            窄播消息或广播消息的请求ID。 
+            每个消息传递 API 请求都有一个请求 ID。
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMessageEventResponse"
+              example:
+                overview:
+                  requestId: f70dd685-499a-4231-a441-f24b8d4fba21
+                  timestamp: 1568214000
+                  delivered: 320
+                  uniqueImpression: 82
+                  uniqueClick: 51
+                  uniqueMediaPlayed: null
+                  uniqueMediaPlayed100Percent: null
+                messages:
+                  - seq: 1
+                    impression: 136
+                    mediaPlayed: null
+                    mediaPlayed25Percent: null
+                    mediaPlayed50Percent: null
+                    mediaPlayed75Percent: null
+                    mediaPlayed100Percent: null
+                    uniqueMediaPlayed: null
+                    uniqueMediaPlayed25Percent: null
+                    uniqueMediaPlayed50Percent: null
+                    uniqueMediaPlayed75Percent: null
+                    uniqueMediaPlayed100Percent: null
+                clicks:
+                  - seq: 1
+                    url: https://line.me/
+                    click: 41
+                    uniqueClick: 30
+                    uniqueClickOfRequest: 30
+                  - seq: 1
+                    url: https://www.linebiz.com/
+                    click: 59
+                    uniqueClick: 38
+                    uniqueClickOfRequest: 38
+  /v2/bot/insight/message/event/aggregation:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-statistics-per-unit
+      tags:
+        - insight
+      description: |-
+        您可以查看用户如何交互的每单位统计数据
+         从您的 LINE 官方帐号发送的推送消息和组播消息。
+      operationId: getStatisticsPerUnit
+      parameters:
+        - in: query
+          name: customAggregationUnit
+          required: true
+          description: |-
+            发送消息时指定的聚合单元名称。 区分大小写。 
+            例如，“Promotion_a”和“Promotion_A”被视为不同的单位名称。
+          schema:
+            type: string
+            pattern: ^[a-zA-Z0-9_]{1,30}$
+            minLength: 1
+            maxLength: 30
+        - in: query
+          name: from
+          required: true
+          description: |-
+            汇总期的开始日期。 
+
+            格式：yyyyMMdd（例如 20210301）
+             时区：UTC+9
+          schema:
+            type: string
+            pattern: ^[0-9]{8}$
+            example: "20210301"
+            minLength: 8
+            maxLength: 8
+        - in: query
+          name: to
+          required: true
+          description: |-
+            汇总期的结束日期。 结束日期最多可以指定为 30 天后。 例如，如果开始日期为 20210301，则最晚结束日期为 20210331。 
+
+            格式：yyyyMMdd（例如 20210301）
+             时区：UTC+9
+          schema:
+            type: string
+            pattern: ^[0-9]{8}$
+            example: "20210301"
+            minLength: 8
+            maxLength: 8
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetStatisticsPerUnitResponse"
+              example:
+                overview:
+                  uniqueImpression: 40
+                  uniqueClick: 30
+                  uniqueMediaPlayed: 25
+                  uniqueMediaPlayed100Percent: null
+                messages:
+                  - seq: 1
+                    impression: 42
+                    mediaPlayed: 30
+                    mediaPlayed25Percent: null
+                    mediaPlayed50Percent: null
+                    mediaPlayed75Percent: null
+                    mediaPlayed100Percent: null
+                    uniqueMediaPlayed: 25
+                    uniqueMediaPlayed25Percent: null
+                    uniqueMediaPlayed50Percent: null
+                    uniqueMediaPlayed75Percent: null
+                    uniqueMediaPlayed100Percent: null
+                clicks:
+                  - seq: 1
+                    url: https://developers.line.biz/
+                    click: 35
+                    uniqueClick: 25
+                    uniqueClickOfRequest: null
+                  - seq: 1
+                    url: https://developers.line.biz/
+                    click: 29
+                    uniqueClick: null
+                    uniqueClickOfRequest: null
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      description: 通道访问令牌
+  schemas:
+    GetFriendsDemographicsResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-demographic
+      description: 获取好友人口统计数据
+      type: object
+      properties:
+        available:
+          type: boolean
+          description: 如果好友人口统计信息可用，则为 true。
+        genders:
+          type: array
+          items:
+            $ref: "#/components/schemas/GenderTile"
+          description: 每种性别的百分比。
+        ages:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgeTile"
+          description: 每个年龄组的百分比。
+        areas:
+          type: array
+          items:
+            $ref: "#/components/schemas/AreaTile"
+          description: 每个面积的百分比。
+        appTypes:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppTypeTile"
+          description: 按操作系统划分的百分比。
+        subscriptionPeriods:
+          items:
+            $ref: "#/components/schemas/SubscriptionPeriodTile"
+          type: array
+          description: 每个友谊持续时间的百分比。
+    GenderTile:
+      type: object
+      properties:
+        gender:
+          type: string
+          enum:
+            - male
+            - female
+            - unknown
+          description: 用户性别
+        percentage:
+          type: number
+          format: double
+          description: 百分比
+    AgeTile:
+      type: object
+      properties:
+        age:
+          type: string
+          enum:
+            - from0to14
+            - from15to19
+            - from20to24
+            - from25to29
+            - from30to34
+            - from35to39
+            - from40to44
+            - from45to49
+            - from50
+            - from50to54
+            - from55to59
+            - from60to64
+            - from65to69
+            - from70
+            - unknown
+          description: 用户年龄
+        percentage:
+          type: number
+          format: double
+          description: 百分比
+    AreaTile:
+      type: object
+      properties:
+        area:
+          type: string
+          description: 用户所在国家和地区
+        percentage:
+          type: number
+          format: double
+          description: 百分比
+    AppTypeTile:
+      properties:
+        appType:
+          type: string
+          enum:
+            - ios
+            - android
+            - others
+          description: 用户操作系统
+        percentage:
+          format: double
+          type: number
+          description: 百分比
+      type: object
+    SubscriptionPeriodTile:
+      properties:
+        subscriptionPeriod:
+          type: string
+          description: 认购期。 可能的值：`within7days`、`within90days`、`unknown` 等。
+          enum:
+            - within7days
+            - within30days
+            - within90days
+            - within180days
+            - within365days
+            - over365days
+            - unknown
+        percentage:
+          format: double
+          type: number
+          description: 百分比。 可能的值：[0.0,100.0] 例如 0、2.9、37.6。
+      type: object
+    GetNumberOfMessageDeliveriesResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-number-of-delivery-messages
+      description: 获取消息发送次数
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ready
+            - unready
+            - out_of_service
+          description: 计数过程的状态。
+        broadcast:
+          format: int64
+          type: integer
+          description: 向该 LINE 官方帐号的所有好友发送的消息数（广播消息）。
+        targeting:
+          format: int64
+          type: integer
+          description: 根据特定属性（目标消息）向该 LINE 官方帐户的部分好友发送的消息数量。
+        autoResponse:
+          format: int64
+          type: integer
+          description: 发送的自动回复消息数。
+        welcomeResponse:
+          format: int64
+          type: integer
+          description: 发送的问候消息数。
+        chat:
+          format: int64
+          type: integer
+          description: 从 LINE 官方客户经理 [聊天屏幕](https://www.linebiz.com/jp/manual/OfficialAccountManager/chats/) 发送的消息数量（仅提供日语）。
+        apiBroadcast:
+          format: int64
+          type: integer
+          description: 通过“发送广播消息”消息传递 API 操作发送的广播消息数。
+        apiPush:
+          format: int64
+          type: integer
+          description: 通过“发送推送消息”消息传递 API 操作发送的推送消息数。
+        apiMulticast:
+          format: int64
+          type: integer
+          description: 通过“发送多播消息”消息传递 API 操作发送的多播消息数。
+        apiNarrowcast:
+          format: int64
+          type: integer
+          description: 通过“发送窄播消息”消息传递 API 操作发送的窄播消息数。
+        apiReply:
+          format: int64
+          type: integer
+          description: 通过“发送回复消息”消息传递 API 操作发送的回复数。
+    GetNumberOfFollowersResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-number-of-followers
+      description: 获取关注者数量
+      type: object
+      properties:
+        status:
+          description: 计算状态。
+          type: string
+          enum:
+            - ready
+            - unready
+            - out_of_service
+        followers:
+          type: integer
+          format: int64
+          description: |-
+            截至指定日期，用户首次将此 LINE 官方帐户添加为好友的次数。 
+            即使用户后来屏蔽该帐户或删除其 LINE 帐户，该数字也不会减少。
+        targetedReaches:
+          format: int64
+          type: integer
+          description: |-
+            截至指定日期，LINE 官方帐户可以通过基于性别、年龄和/或地区的定向消息覆盖的用户数量。 
+            该数字仅包括活跃于 LINE 或 LINE 服务且人口统计数据具有高度确定性的用户。
+        blocks:
+          type: integer
+          format: int64
+          description: |-
+            截至指定日期阻止帐户的用户数量。 
+            当用户解锁帐户时，该数字会减少。
+    GetMessageEventResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-insight-message-event-response
+      description: 有关用户如何与从您的 LINE 官方帐户发送的窄播消息或广播消息进行交互的统计信息。
+      properties:
+        overview:
+          $ref: "#/components/schemas/GetMessageEventResponseOverview"
+        messages:
+          description: 有关各个消息气泡的信息数组。
+          type: array
+          items:
+            $ref: "#/components/schemas/GetMessageEventResponseMessage"
+        clicks:
+          description: 有关消息中打开的 URL 的信息数组。
+          type: array
+          items:
+            $ref: "#/components/schemas/GetMessageEventResponseClick"
+      type: object
+    GetMessageEventResponseOverview:
+      description: 消息统计摘要。
+      type: object
+      properties:
+        requestId:
+          type: string
+          description: 请求 ID。
+        timestamp:
+          format: int64
+          type: integer
+          description: 消息传送时间的 UNIX 时间戳（以秒为单位）。
+        delivered:
+          format: int64
+          type: integer
+          description: |-
+            已发送的消息数。 
+            此属性显示的值小于 20。 
+            但是，如果所有消息均未发送，则为空。
+        uniqueImpression:
+          format: int64
+          type: integer
+          description: 打开消息的用户数量，这意味着他们至少显示 1 个气泡。
+          nullable: true
+        uniqueClick:
+          format: int64
+          type: integer
+          description: 打开消息中任意 URL 的用户数量。
+          nullable: true
+        uniqueMediaPlayed:
+          format: int64
+          type: integer
+          description: 开始播放消息中任何视频或音频的用户数量。
+          nullable: true
+        uniqueMediaPlayed100Percent:
+          format: int64
+          type: integer
+          description: 播放了消息中全部视频或音频的用户数量。
+          nullable: true
+    GetMessageEventResponseMessage:
+      type: object
+      properties:
+        seq:
+          format: int32
+          type: integer
+          description: 泡泡的序列号。
+        impression:
+          format: int64
+          type: integer
+          description: 气泡显示的次数。
+          nullable: true
+        mediaPlayed:
+          format: int64
+          type: integer
+          description: 气泡中的音频或视频开始播放的次数。
+          nullable: true
+        mediaPlayed25Percent:
+          format: int64
+          type: integer
+          description: 气泡中的音频或视频开始播放且播放时间占总时间 25% 的次数。
+          nullable: true
+        mediaPlayed50Percent:
+          format: int64
+          type: integer
+          description: 气泡中的音频或视频开始播放且播放时间达到总时间 50% 的次数。
+          nullable: true
+        mediaPlayed75Percent:
+          format: int64
+          type: integer
+          description: 气泡中的音频或视频开始播放且播放时间占总时间的 75% 的次数。
+          nullable: true
+        mediaPlayed100Percent:
+          format: int64
+          type: integer
+          description: 气泡中的音频或视频开始播放且播放时间达到总时间 100% 的次数。
+          nullable: true
+        uniqueMediaPlayed:
+          format: int64
+          type: integer
+          description: 开始在气泡中播放音频或视频的用户数量。
+          nullable: true
+        uniqueMediaPlayed25Percent:
+          format: int64
+          type: integer
+          description: 在气泡中开始播放音频或视频且播放时间达到总时间 25% 的用户数量。
+          nullable: true
+        uniqueMediaPlayed50Percent:
+          format: int64
+          type: integer
+          description: 在气泡中开始播放音频或视频且播放时间达到总时间 50% 的用户数量。
+          nullable: true
+        uniqueMediaPlayed75Percent:
+          format: int64
+          type: integer
+          description: 在气泡中开始播放音频或视频且播放时间达到总时间 75% 的用户数量。
+          nullable: true
+        uniqueMediaPlayed100Percent:
+          format: int64
+          type: integer
+          description: 在气泡中开始播放音频或视频且播放时间达到 100% 的用户数量。
+          nullable: true
+    GetMessageEventResponseClick:
+      type: object
+      properties:
+        seq:
+          type: integer
+          format: int32
+          description: URL 的序列号。
+        url:
+          type: string
+          description: 网址。
+        click:
+          type: integer
+          format: int64
+          description: URL 被打开的次数。
+          nullable: true
+        uniqueClick:
+          type: integer
+          format: int64
+          description: 打开该 URL 的用户数量。
+          nullable: true
+        uniqueClickOfRequest:
+          type: integer
+          format: int64
+          description: 通过消息中的任意链接打开此 URL 的用户数量。 如果邮件包含两个指向同一 URL 的链接，并且用户打开这两个链接，则它们仅计数一次。
+          nullable: true
+    GetStatisticsPerUnitResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-statistics-per-unit-response
+      description: “获取每单位统计数据”的响应对象
+      type: object
+      properties:
+        overview:
+          $ref: "#/components/schemas/GetStatisticsPerUnitResponseOverview"
+        messages:
+          description: 有关各个消息气泡的信息数组。
+          type: array
+          items:
+            $ref: "#/components/schemas/GetStatisticsPerUnitResponseMessage"
+        clicks:
+          description: 有关消息中打开的 URL 的信息数组。
+          type: array
+          items:
+            $ref: "#/components/schemas/GetStatisticsPerUnitResponseClick"
+      required:
+        - clicks
+        - messages
+        - overview
+    GetStatisticsPerUnitResponseOverview:
+      description: 与消息相关的统计。
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-statistics-per-unit-response
+      type: object
+      properties:
+        uniqueImpression:
+          format: int64
+          type: integer
+          description: 打开消息的用户数量，这意味着他们至少显示 1 个气泡。
+          nullable: true
+        uniqueClick:
+          format: int64
+          type: integer
+          description: 打开消息中任意 URL 的用户数量。
+          nullable: true
+        uniqueMediaPlayed:
+          format: int64
+          type: integer
+          description: 开始播放消息中任何视频或音频的用户数量。
+          nullable: true
+        uniqueMediaPlayed100Percent:
+          format: int64
+          type: integer
+          description: 播放了消息中全部视频或音频的用户数量。
+          nullable: true
+    GetStatisticsPerUnitResponseMessage:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-statistics-per-unit-response
+      required:
+        - seq
+      type: object
+      properties:
+        seq:
+          format: int32
+          type: integer
+          description: 泡泡的序列号。
+        impression:
+          format: int64
+          type: integer
+          description: 气泡显示的次数。
+          nullable: true
+        mediaPlayed:
+          format: int64
+          type: integer
+          description: 气泡中的音频或视频开始播放的次数。
+          nullable: true
+        mediaPlayed25Percent:
+          format: int64
+          type: integer
+          description: 气泡中的音频或视频开始播放且播放时间占总时间 25% 的次数。
+          nullable: true
+        mediaPlayed50Percent:
+          format: int64
+          type: integer
+          description: 气泡中的音频或视频开始播放且播放时间达到总时间 50% 的次数。
+          nullable: true
+        mediaPlayed75Percent:
+          format: int64
+          type: integer
+          description: 气泡中的音频或视频开始播放且播放时间占总时间的 75% 的次数。
+          nullable: true
+        mediaPlayed100Percent:
+          format: int64
+          type: integer
+          description: 气泡中的音频或视频开始播放且播放时间达到总时间 100% 的次数。
+          nullable: true
+        uniqueImpression:
+          format: int64
+          type: integer
+          description: 气泡显示的用户数。
+          nullable: true
+        uniqueMediaPlayed:
+          format: int64
+          type: integer
+          description: 开始在气泡中播放音频或视频的用户数量。
+          nullable: true
+        uniqueMediaPlayed25Percent:
+          format: int64
+          type: integer
+          description: 在气泡中开始播放音频或视频且播放时间达到总时间 25% 的用户数量。
+          nullable: true
+        uniqueMediaPlayed50Percent:
+          format: int64
+          type: integer
+          description: 在气泡中开始播放音频或视频且播放时间达到总时间 50% 的用户数量。
+          nullable: true
+        uniqueMediaPlayed75Percent:
+          format: int64
+          type: integer
+          description: 在气泡中开始播放音频或视频且播放时间达到总时间 75% 的用户数量。
+          nullable: true
+        uniqueMediaPlayed100Percent:
+          format: int64
+          type: integer
+          description: 在气泡中开始播放音频或视频且播放时间达到 100% 的用户数量。
+          nullable: true
+    GetStatisticsPerUnitResponseClick:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-statistics-per-unit-response
+      type: object
+      properties:
+        seq:
+          format: int64
+          type: integer
+          description: URL 的序列号。
+        url:
+          type: string
+          description: 网址。
+        click:
+          format: int64
+          type: integer
+          description: 气泡中的 URL 被打开的次数。
+          nullable: true
+        uniqueClick:
+          format: int64
+          type: integer
+          description: 打开气泡中 URL 的用户数量。
+          nullable: true
+        uniqueClickOfRequest:
+          format: int64
+          type: integer
+          description: |-
+            通过消息中的任意链接打开此 URL 的用户数量。 
+            如果另一个消息气泡包含相同的 URL，并且用户打开这两个链接，则仅计数一次。
+          nullable: true
+      required:
+        - seq
+        - url
+    ErrorResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#error-responses
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: 包含有关错误的信息的消息。
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorDetail"
+          description: 错误详细信息的数组。 如果数组为空，则该属性将不会包含在响应中。
+    ErrorDetail:
+      type: object
+      properties:
+        message:
+          type: string
+          description: 错误的详细信息。 在某些情况下不包含在响应中。
+        property:
+          type: string
+          description: 发生错误的位置。 返回请求的 JSON 字段名称或查询参数名称。 在某些情况下不包含在响应中。

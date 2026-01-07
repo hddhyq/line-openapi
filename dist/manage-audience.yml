@@ -1,0 +1,1202 @@
+openapi: 3.0.0
+info:
+  title: LINE 消息 API
+  version: 0.0.1
+  description: 本文档描述了 LINE 消息 API。
+servers:
+  - url: https://api.line.me
+security:
+  - Bearer: []
+tags:
+  - name: manage-audience
+  - name: manage-audience-blob
+paths:
+  /v2/bot/audienceGroup/upload:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-upload-audience-group
+      tags:
+        - manage-audience
+      operationId: createAudienceGroup
+      description: 创建用于上传用户 ID 的受众（通过 JSON）
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAudienceGroupRequest"
+        required: true
+      responses:
+        "202":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateAudienceGroupResponse"
+              example:
+                audienceGroupId: 1234567890123
+                createRoute: MESSAGING_API
+                type: UPLOAD
+                description: AudienceGroupName_01
+                created: 1613698278
+                permission: READ_WRITE
+                expireTimestamp: 1629250278
+                isIfaAudience: false
+    put:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#update-upload-audience-group
+      tags:
+        - manage-audience
+      operationId: addAudienceToAudienceGroup
+      description: 将用户 ID 或广告商标识符 (IFA) 添加到受众群体以上传用户 ID（通过 JSON）
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddAudienceToAudienceGroupRequest"
+        required: true
+      responses:
+        "202":
+          description: 好的
+  /v2/bot/audienceGroup/upload/byFile:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-upload-audience-group-by-file
+      servers:
+        - url: https://api-data.line.me
+      tags:
+        - manage-audience-blob
+      operationId: createAudienceForUploadingUserIds
+      description: 创建用于上传用户 ID 的受众（按文件）。
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              description: 请求 createAudienceForUploadingUserIds
+              type: object
+              required:
+                - file
+              properties:
+                description:
+                  type: string
+                  maxLength: 120
+                  description: |-
+                    观众的名字。 这是不区分大小写的，这意味着 AUDIENCE 和观众被认为是相同的。 
+                    最大字符数限制：120
+                isIfaAudience:
+                  type: boolean
+                  description: |-
+                    要通过 IFA 指定收件人：设置“true”。 
+                    要按用户 ID 指定收件人：设置“false”或省略 isIfaAudience 属性。
+                uploadDescription:
+                  type: string
+                  description: 注册职位的描述（在“jobs[].description”中）。
+                file:
+                  type: string
+                  format: binary
+                  description: |
+                    A text file with one user ID or IFA entered per line. Specify text/plain as Content-Type. Max file number: 1
+                    Max number: 1,500,000
+            encoding:
+              file:
+                contentType: text/plain
+        required: true
+      responses:
+        "202":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateAudienceGroupResponse"
+              example:
+                audienceGroupId: 1234567890123
+                createRoute: MESSAGING_API
+                type: UPLOAD
+                description: AudienceGroupName_01
+                created: 1613700237
+                permission: READ_WRITE
+                expireTimestamp: 1629252237
+                isIfaAudience: false
+    put:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#update-upload-audience-group-by-file
+      servers:
+        - url: https://api-data.line.me
+      tags:
+        - manage-audience-blob
+      operationId: addUserIdsToAudience
+      description: 将用户 ID 或广告商标识符 (IFA) 添加到受众群体以上传用户 ID（按文件）。
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              description: addUserIdsToAudience 请求
+              type: object
+              required:
+                - file
+              properties:
+                audienceGroupId:
+                  type: integer
+                  format: int64
+                  description: 观众 ID。
+                uploadDescription:
+                  type: string
+                  description: 注册职位的描述
+                file:
+                  type: string
+                  format: binary
+                  description: |-
+                    一种文本文件，每行输入一个用户 ID 或 IFA。 指定 text/plain 作为内容类型。 最大文件数：1
+                     最大数量：1,500,000
+            encoding:
+              file:
+                contentType: text/plain
+      responses:
+        "202":
+          description: 好的
+  /v2/bot/audienceGroup/click:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-click-audience-group
+      tags:
+        - manage-audience
+      operationId: createClickBasedAudienceGroup
+      description: 为基于点击的重定向创建受众群体
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClickBasedAudienceGroupRequest"
+        required: true
+      responses:
+        "202":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateClickBasedAudienceGroupResponse"
+              example:
+                audienceGroupId: 1234567890123
+                createRoute: MESSAGING_API
+                type: CLICK
+                description: AudienceGroupName_01
+                created: 1613705240
+                permission: READ_WRITE
+                expireTimestamp: 1629257239
+                isIfaAudience: false
+                requestId: bb9744f9-47fa-4a29-941e-1234567890ab
+                clickUrl: https://developers.line.biz/
+  /v2/bot/audienceGroup/imp:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-imp-audience-group
+      tags:
+        - manage-audience
+      operationId: createImpBasedAudienceGroup
+      description: 为基于印象的重定向创建受众
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateImpBasedAudienceGroupRequest"
+        required: true
+      responses:
+        "202":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateImpBasedAudienceGroupResponse"
+              example:
+                audienceGroupId: 1234567890123
+                createRoute: MESSAGING_API
+                type: IMP
+                description: AudienceGroupName_01
+                created: 1613707097
+                permission: READ_WRITE
+                expireTimestamp: 1629259095
+                isIfaAudience: false
+                requestId: bb9744f9-47fa-4a29-941e-1234567890ab
+  /v2/bot/audienceGroup/{audienceGroupId}/updateDescription:
+    put:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#set-description-audience-group
+      tags:
+        - manage-audience
+      operationId: updateAudienceGroupDescription
+      description: 重命名现有受众。
+      parameters:
+        - name: audienceGroupId
+          in: path
+          required: true
+          description: 观众 ID。
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAudienceGroupDescriptionRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/audienceGroup/{audienceGroupId}:
+    parameters:
+      - name: audienceGroupId
+        in: path
+        required: true
+        description: 观众 ID。
+        schema:
+          type: integer
+          format: int64
+    delete:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#delete-audience-group
+      tags:
+        - manage-audience
+      operationId: deleteAudienceGroup
+      description: 删除受众
+      responses:
+        "200":
+          description: 好的
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-audience-group
+      tags:
+        - manage-audience
+      operationId: getAudienceData
+      description: 获取受众数据。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAudienceDataResponse"
+              examples:
+                UPLOADING_USER_IDS:
+                  summary: 用于上传用户 ID 的受众群体示例
+                  value:
+                    audienceGroup:
+                      audienceGroupId: 1234567890123
+                      createRoute: OA_MANAGER
+                      type: UPLOAD
+                      description: AudienceGroupName_01
+                      status: READY
+                      audienceCount: 1887
+                      created: 1608617466
+                      permission: READ
+                      isIfaAudience: false
+                      expireTimestamp: 1624342266
+                    jobs:
+                      - audienceGroupJobId: 12345678
+                        audienceGroupId: 1234567890123
+                        description: 受众列表.txt
+                        type: DIFF_ADD
+                        status: FINISHED
+                        failedType: AUDIENCE_GROUP_AUDIENCE_INSUFFICIENT
+                        audienceCount: 0
+                        created: 1608617472
+                        jobStatus: FINISHED
+                CLICK_BASED:
+                  summary: 用于基于点击的重定向的受众群体示例
+                  value:
+                    audienceGroup:
+                      audienceGroupId: 1234567890987
+                      createRoute: OA_MANAGER
+                      type: CLICK
+                      description: audienceGroupName_02
+                      status: IN_PROGRESS
+                      audienceCount: 8619
+                      created: 1611114828
+                      permission: READ
+                      isIfaAudience: false
+                      expireTimestamp: 1626753228
+                      requestId: c10c3d86-f565-...
+                      clickUrl: https://example.com/
+                    jobs: []
+                APP_EVENTS:
+                  summary: 用于应用事件的受众群体示例
+                  value:
+                    audienceGroup:
+                      audienceGroupId: 2345678909876
+                      createRoute: AD_MANAGER
+                      type: APP_EVENT
+                      description: AudienceGroupName_03
+                      status: READY
+                      audienceCount: 8619
+                      created: 1608619802
+                      permission: READ
+                      activated: 1610068515
+                      inactiveTimestamp: 1625620516
+                      isIfaAudience: false
+                    jobs: []
+                    adaccount:
+                      name: Ad Account Name
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: audience group not found
+                details:
+                  - message: AUDIENCE_GROUP_NOT_FOUND
+  /v2/bot/audienceGroup/list:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-audience-groups
+      tags:
+        - manage-audience
+      operationId: getAudienceGroups
+      description: 获取多个受众的数据。
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+          description: 获取（分页）结果时返回的页面。 必须为 1 或更高。
+        - name: description
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |-
+            要返回的观众的姓名。 
+            您可以搜索部分匹配项。 
+            这是不区分大小写的，这意味着 AUDIENCE 和观众被认为是相同的。 
+            如果省略，观众姓名将不会用作搜索条件。
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/AudienceGroupStatus"
+          description: 返回观众的状态。 如果省略，观众的状态将不会用作搜索条件。
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 20
+            maximum: 40
+          description: |-
+            每页的受众数量。 默认值：20
+             最多：40
+        - name: includesExternalPublicGroups
+          in: query
+          required: false
+          schema:
+            type: boolean
+            example: true
+          description: |-
+            true（默认）：获取在链接到同一机器人的所有频道中创建的公共受众。 
+            false：获取在同一频道中创建的受众。
+        - name: createRoute
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/AudienceGroupCreateRoute"
+          description: |-
+            观众是如何创造的。 如果省略，则包括所有受众。 
+
+            `OA_MANAGER`：仅返回使用 LINE 官方客户经理创建的受众群体（打开新窗口）。 
+            `MESSAGING_API`：仅返回使用 Messaging API 创建的受众。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAudienceGroupsResponse"
+              examples:
+                TWO_AUDIENCES:
+                  summary: 有两个受众与指定过滤器匹配的示例
+                  value:
+                    audienceGroups:
+                      - audienceGroupId: 1234567890123
+                        createRoute: OA_MANAGER
+                        type: CLICK
+                        description: AudienceGroupName_01
+                        status: IN_PROGRESS
+                        audienceCount: 8619
+                        created: 1611114828
+                        permission: READ
+                        isIfaAudience: false
+                        expireTimestamp: 1626753228
+                        requestId: c10c3d86-f565-...
+                        clickUrl: https://example.com/
+                      - audienceGroupId: 2345678901234
+                        createRoute: AD_MANAGER
+                        type: APP_EVENT
+                        description: AudienceGroupName_02
+                        status: READY
+                        audienceCount: 3368
+                        created: 1608619802
+                        permission: READ
+                        activated: 1610068515
+                        inactiveTimestamp: 1625620516
+                        isIfaAudience: false
+                    hasNextPage: false
+                    totalCount: 2
+                    readWriteAudienceGroupTotalCount: 0
+                    size: 40
+                    page: 1
+                NO_AUDIENCE:
+                  summary: 没有与指定过滤器匹配的受众时的示例
+                  value:
+                    audienceGroups: []
+                    hasNextPage: false
+                    totalCount: 0
+                    readWriteAudienceGroupTotalCount: 0
+                    size: 40
+                    page: 1
+  /v2/bot/audienceGroup/shared/{audienceGroupId}:
+    parameters:
+      - name: audienceGroupId
+        in: path
+        required: true
+        description: 观众 ID。
+        schema:
+          type: integer
+          format: int64
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-shared-audience
+      tags:
+        - manage-audience
+      operationId: getSharedAudienceData
+      description: 获取受众数据。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetSharedAudienceDataResponse"
+              examples:
+                UPLOADING_USER_IDS:
+                  summary: 用于上传用户 ID 的受众群体示例
+                  value:
+                    audienceGroup:
+                      audienceGroupId: 1234567890123
+                      createRoute: OA_MANAGER
+                      type: UPLOAD
+                      description: AudienceGroupName_01
+                      status: READY
+                      audienceCount: 1887
+                      created: 1608617466
+                      permission: READ
+                      isIfaAudience: false
+                      expireTimestamp: 1624342266
+                    jobs:
+                      - audienceGroupJobId: 12345678
+                        audienceGroupId: 1234567890123
+                        description: 受众列表.txt
+                        type: DIFF_ADD
+                        status: FINISHED
+                        failedType: AUDIENCE_GROUP_AUDIENCE_INSUFFICIENT
+                        audienceCount: 0
+                        created: 1608617472
+                        jobStatus: FINISHED
+                CLICK_BASED:
+                  summary: 用于基于点击的重定向的受众群体示例
+                  value:
+                    audienceGroup:
+                      audienceGroupId: 1234567890987
+                      createRoute: OA_MANAGER
+                      type: CLICK
+                      description: AudienceGroupName_02
+                      status: IN_PROGRESS
+                      audienceCount: 8619
+                      created: 1611114828
+                      permission: READ
+                      isIfaAudience: false
+                      expireTimestamp: 1626753228
+                      requestId: c10c3d86-f565-...
+                      clickUrl: https://example.com/
+                    jobs: []
+                APP_EVENTS:
+                  summary: 用于应用事件的受众群体示例
+                  value:
+                    audienceGroup:
+                      audienceGroupId: 2345678909876
+                      createRoute: AD_MANAGER
+                      type: APP_EVENT
+                      description: AudienceGroupName_03
+                      status: READY
+                      audienceCount: 8619
+                      created: 1608619802
+                      permission: READ
+                      activated: 1610068515
+                      inactiveTimestamp: 1625620516
+                      isIfaAudience: false
+                    jobs: []
+                    owner:
+                      serviceType: lap
+                      id: A012345678
+                      name: Ad Account Name
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                message: audience group not found
+                details:
+                  - message: AUDIENCE_GROUP_NOT_FOUND
+  /v2/bot/audienceGroup/shared/list:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-shared-audience-list
+      tags:
+        - manage-audience
+      operationId: getSharedAudienceGroups
+      description: 获取多个受众的数据，包括业务管理平台共享的数据。
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+          description: 获取（分页）结果时返回的页面。 必须为 1 或更高。
+        - name: description
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |-
+            要返回的观众的姓名。 
+            您可以搜索部分匹配项。 
+            这是不区分大小写的，这意味着 AUDIENCE 和观众被认为是相同的。 
+            如果省略，观众姓名将不会用作搜索条件。
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/AudienceGroupStatus"
+          description: 返回观众的状态。 如果省略，观众的状态将不会用作搜索条件。
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 20
+            maximum: 40
+          description: |-
+            每页的受众数量。 默认值：20
+             最多：40
+        - name: createRoute
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/AudienceGroupCreateRoute"
+          description: |-
+            观众是如何创造的。 如果省略，则包括所有受众。 
+
+            `OA_MANAGER`：仅返回使用 LINE 官方客户经理创建的受众群体（打开新窗口）。 
+            `MESSAGING_API`：仅返回使用 Messaging API 创建的受众。
+        - name: includesOwnedAudienceGroups
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: |-
+            true：包括 LINE 官方客户经理拥有的 AudienceGroups
+             false：仅响应商务管理平台共享的受众群体
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetSharedAudienceGroupsResponse"
+              examples:
+                TWO_AUDIENCES:
+                  summary: 有两个受众与指定过滤器匹配的示例
+                  value:
+                    audienceGroups:
+                      - audienceGroupId: 1234567890123
+                        createRoute: OA_MANAGER
+                        type: CLICK
+                        description: AudienceGroupName_01
+                        status: IN_PROGRESS
+                        audienceCount: 8619
+                        created: 1611114828
+                        permission: READ
+                        isIfaAudience: false
+                        expireTimestamp: 1626753228
+                        requestId: c10c3d86-f565-...
+                        clickUrl: https://example.com/
+                      - audienceGroupId: 2345678901234
+                        createRoute: AD_MANAGER
+                        type: APP_EVENT
+                        description: AudienceGroupName_02
+                        status: READY
+                        audienceCount: 3368
+                        created: 1608619802
+                        permission: READ
+                        activated: 1610068515
+                        inactiveTimestamp: 1625620516
+                        isIfaAudience: false
+                    hasNextPage: false
+                    totalCount: 2
+                    readWriteAudienceGroupTotalCount: 0
+                    size: 40
+                    page: 1
+                NO_AUDIENCE:
+                  summary: 没有与指定过滤器匹配的受众时的示例
+                  value:
+                    audienceGroups: []
+                    hasNextPage: false
+                    totalCount: 0
+                    readWriteAudienceGroupTotalCount: 0
+                    size: 40
+                    page: 1
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      description: 通道访问令牌
+  schemas:
+    CreateAudienceGroupRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-upload-audience-group
+      type: object
+      description: 创建用于上传用户 ID 的受众（通过 JSON）
+      properties:
+        description:
+          type: string
+          description: |-
+            观众的名字。 这是不区分大小写的，这意味着 AUDIENCE 和观众被认为是相同的。 
+            最大字符数限制：120
+          maxLength: 120
+        isIfaAudience:
+          type: boolean
+          description: |-
+            要通过 IFA 指定收件人：设置 true。 
+            要按用户 ID 指定收件人：设置 false 或省略 isIfaAudience 属性。
+        uploadDescription:
+          type: string
+          description: 注册作业的描述（在 jobs[].description 中）。
+        audiences:
+          type: array
+          items:
+            $ref: "#/components/schemas/Audience"
+          description: |-
+            用户 ID 或 IFA 的数组。 
+            最大数量：10,000
+          maxItems: 10000
+    Audience:
+      description: 观众
+      type: object
+      properties:
+        id:
+          type: string
+          description: 用户 ID 或 IFA。 您可以指定一个空数组。
+    CreateAudienceGroupResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-upload-audience-group
+      type: object
+      description: 创建用于上传用户 ID 的受众（通过 JSON）
+      properties:
+        audienceGroupId:
+          type: integer
+          format: int64
+          description: 观众 ID。
+        createRoute:
+          type: string
+          enum:
+            - MESSAGING_API
+          description: |-
+            观众是如何创造的。 
+
+            `MESSAGING_API`：使用 Messaging API 创建的受众。
+        type:
+          $ref: "#/components/schemas/AudienceGroupType"
+        description:
+          type: string
+          description: 观众的名字。
+        created:
+          type: integer
+          format: int64
+          description: When the audience was created (in UNIX time).
+        permission:
+          type: string
+          enum:
+            - READ
+            - READ_WRITE
+          description: |
+            Audience's update permission. Audiences linked to the same channel will be READ_WRITE.
+
+            `READ`: Can use only.
+            `READ_WRITE`: Can use and update.
+        expireTimestamp:
+          type: integer
+          format: int64
+          description: 受众到期时间。 仅针对特定受众返回。
+        isIfaAudience:
+          type: boolean
+          description: |-
+            该值指示要发送的帐户类型，如创建用于上传用户 ID 的受众时指定的。 其中之一：
+
+             `true`：账户是用 IFA 指定的。 
+            `false`（默认）：使用用户 ID 指定帐户。
+    AudienceGroupType:
+      description: 观众群体类型
+      type: string
+      enum:
+        - UPLOAD
+        - CLICK
+        - IMP
+        - CHAT_TAG
+        - FRIEND_PATH
+        - RESERVATION
+        - APP_EVENT
+        - VIDEO_VIEW
+        - WEBTRAFFIC
+        - IMAGE_CLICK
+        - RICHMENU_IMP
+        - RICHMENU_CLICK
+        - POP_AD_IMP
+    AddAudienceToAudienceGroupRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#update-upload-audience-group
+      type: object
+      description: 将用户 ID 或广告商标识符 (IFA) 添加到受众群体以上传用户 ID（通过 JSON）
+      properties:
+        audienceGroupId:
+          type: integer
+          format: int64
+          description: 观众 ID。
+        uploadDescription:
+          type: string
+          description: 观众的名字。
+        audiences:
+          description: 最多包含 10,000 个用户 ID 或 IFA 的数组。
+          type: array
+          items:
+            $ref: "#/components/schemas/Audience"
+          maxItems: 10000
+    CreateClickBasedAudienceGroupRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-click-audience-group
+      type: object
+      description: 为基于点击的重定向创建受众群体
+      properties:
+        description:
+          type: string
+          description: |-
+            观众的名字。 这是不区分大小写的，这意味着 AUDIENCE 和观众被认为是相同的。 
+            最大字符数限制：120
+          maxLength: 120
+        requestId:
+          type: string
+          description: |-
+            过去 60 天内发送的广播或窄播消息的请求 ID。 
+            每个消息传递 API 请求都有一个请求 ID。
+        clickUrl:
+          type: string
+          format: uri
+          description: |-
+            用户点击的 URL。 如果为空，则单击邮件中任何 URL 的用户将添加到收件人列表中。 
+            最大字符数限制：2,000
+          maxLength: 2000
+    CreateClickBasedAudienceGroupResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-click-audience-group
+      type: object
+      description: 为基于点击的重定向创建受众群体
+      properties:
+        audienceGroupId:
+          type: integer
+          format: int64
+          description: 观众 ID。
+        type:
+          $ref: "#/components/schemas/AudienceGroupType"
+        description:
+          type: string
+          description: 观众的名字。
+        created:
+          type: integer
+          format: int64
+          description: 创建受众的时间（在 UNIX 时间）。
+        requestId:
+          type: string
+          description: 创建受众时指定的请求 ID。
+        clickUrl:
+          type: string
+          format: uri
+          description: 创建受众时指定的 URL。
+        createRoute:
+          type: string
+          enum:
+            - MESSAGING_API
+          description: |-
+            观众是如何创造的。 
+            `MESSAGING_API`：使用 Messaging API 创建的受众。
+        permission:
+          type: string
+          enum:
+            - READ
+            - READ_WRITE
+          description: |-
+            受众的更新权限。 链接到同一频道的受众将是READ_WRITE。 
+
+            - `READ`：只能使用。 
+            - `READ_WRITE`：可以使用和更新。
+        expireTimestamp:
+          type: integer
+          format: int64
+          description: 受众到期时间。 仅针对特定受众返回。
+        isIfaAudience:
+          type: boolean
+          default: false
+          description: |-
+            该值指示要发送的帐户类型，如创建用于上传用户 ID 的受众时指定的。 其中之一：
+
+             true：帐户是通过 IFA 指定的。 
+            false（默认）：使用用户 ID 指定帐户。
+    CreateImpBasedAudienceGroupRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-imp-audience-group
+      type: object
+      description: 为基于印象的重定向创建受众
+      properties:
+        description:
+          type: string
+          description: |-
+            观众的名字。 
+            这是不区分大小写的，这意味着“AUDIENCE”和“audience”被认为是相同的。 
+            最大字符数限制：120
+          maxLength: 120
+          minLength: 1
+        requestId:
+          type: string
+          description: |-
+            过去 60 天内发送的广播或窄播消息的请求 ID。 
+            每个消息传递 API 请求都有一个请求 ID。
+    CreateImpBasedAudienceGroupResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-imp-audience-group
+      type: object
+      description: 为基于印象的重定向创建受众
+      properties:
+        audienceGroupId:
+          type: integer
+          format: int64
+          description: 观众 ID。
+        type:
+          $ref: "#/components/schemas/AudienceGroupType"
+        description:
+          type: string
+          description: 观众的名字。
+        created:
+          type: integer
+          format: int64
+          description: 创建受众的时间（在 UNIX 时间）。
+        requestId:
+          type: string
+          description: 创建受众时指定的请求 ID。
+    UpdateAudienceGroupDescriptionRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#set-description-audience-group
+      type: object
+      description: 重命名受众
+      properties:
+        description:
+          type: string
+          description: |-
+            观众的名字。 这是不区分大小写的，这意味着 AUDIENCE 和观众被认为是相同的。 
+            最大字符数限制：120
+          maxLength: 120
+          minLength: 1
+    GetAudienceDataResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-audience-group
+      type: object
+      description: 获取受众数据
+      properties:
+        audienceGroup:
+          $ref: "#/components/schemas/AudienceGroup"
+        jobs:
+          type: array
+          description: |-
+            一系列的工作。 
+            该数组用于跟踪向受众添加新用户 ID 或 IFA 以上传用户 ID 的每次尝试。 
+            对于任何其他类型的受众，都会返回空数组。 
+            最多：50
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/AudienceGroupJob"
+        adaccount:
+          $ref: "#/components/schemas/Adaccount"
+    GetSharedAudienceDataResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-audience-group
+      type: object
+      description: 获取受众数据
+      properties:
+        audienceGroup:
+          $ref: "#/components/schemas/AudienceGroup"
+        jobs:
+          type: array
+          description: |-
+            一系列的工作。 
+            该数组用于跟踪向受众添加新用户 ID 或 IFA 以上传用户 ID 的每次尝试。 
+            对于任何其他类型的受众，都会返回空数组。 
+            最多：50
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/AudienceGroupJob"
+        owner:
+          $ref: "#/components/schemas/DetailedOwner"
+    AudienceGroup:
+      type: object
+      description: 观众群体
+      properties:
+        audienceGroupId:
+          type: integer
+          format: int64
+          description: 观众 ID。
+        type:
+          $ref: "#/components/schemas/AudienceGroupType"
+        description:
+          type: string
+          description: 观众的名字。
+        status:
+          $ref: "#/components/schemas/AudienceGroupStatus"
+        failedType:
+          $ref: "#/components/schemas/AudienceGroupFailedType"
+        audienceCount:
+          type: integer
+          format: int64
+          description: The number of users included in the audience.
+        created:
+          type: integer
+          format: int64
+          description: 创建受众的时间（在 UNIX 时间）。
+        requestId:
+          type: string
+          description: |-
+            创建受众时指定的请求 ID。 
+            仅当“audienceGroup.type”为 CLICK 或 IMP 时才包含此内容。
+        clickUrl:
+          type: string
+          format: uri
+          description: |-
+            创建受众时指定的 URL。 
+            仅当 `audienceGroup.type` 为 CLICK 且指定了链接 URL 时才包含此内容。
+        isIfaAudience:
+          type: boolean
+          description: 该值指示要发送的帐户类型，如创建用于上传用户 ID 的受众时指定的。
+        permission:
+          $ref: "#/components/schemas/AudienceGroupPermission"
+        createRoute:
+          $ref: "#/components/schemas/AudienceGroupCreateRoute"
+    AudienceGroupJob:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-audience-group
+      description: 观众小组工作
+      type: object
+      properties:
+        audienceGroupJobId:
+          type: integer
+          format: int64
+          description: 工作 ID。
+        audienceGroupId:
+          type: integer
+          format: int64
+          description: 观众 ID。
+        description:
+          type: string
+          description: 职位描述。
+        type:
+          $ref: "#/components/schemas/AudienceGroupJobType"
+        jobStatus:
+          $ref: "#/components/schemas/AudienceGroupJobStatus"
+        failedType:
+          $ref: "#/components/schemas/AudienceGroupJobFailedType"
+        audienceCount:
+          type: integer
+          format: int64
+          description: 添加或删除的帐户（收件人）数量。
+        created:
+          type: integer
+          format: int64
+          description: 创建作业的时间（UNIX 时间）。
+    Adaccount:
+      description: 账户
+      type: object
+      properties:
+        name:
+          type: string
+          description: 广告帐户名称。
+    DetailedOwner:
+      description: 该受众群体的所有者。
+      type: object
+      properties:
+        serviceType:
+          type: string
+          description: 已创建受众组的服务名称。
+          example: lap
+        id:
+          type: string
+          description: 服务中的所有者 ID。
+          example: A012345678
+        name:
+          type: string
+          description: 所有者帐户名。
+    AudienceGroupStatus:
+      description: 地位
+      type: string
+      enum:
+        - IN_PROGRESS
+        - READY
+        - FAILED
+        - EXPIRED
+        - INACTIVE
+        - ACTIVATING
+    AudienceGroupFailedType:
+      description: 失败类型
+      type: string
+      nullable: true
+      enum:
+        - AUDIENCE_GROUP_AUDIENCE_INSUFFICIENT
+        - INTERNAL_ERROR
+        - null
+    AudienceGroupPermission:
+      description: 允许
+      type: string
+      enum:
+        - READ
+        - READ_WRITE
+    AudienceGroupCreateRoute:
+      description: |-
+        观众是如何创造的。 其中之一：
+
+         - `OA_MANAGER`：使用 [LINE 官方客户经理](https://manager.line.biz/) 创建的受众。 
+        - `MESSAGING_API`：使用消息 API 创建的受众。 
+        - `POINT_AD`：使用 [LINE 积分广告](https://www.linebiz.com/jp/service/line-point-ad/) 创建的受众群体（仅限日语）。 
+        - `AD_MANAGER`：使用 [LINE 广告](https://admanager.line.biz/) 创建的受众群体。
+      type: string
+      enum:
+        - OA_MANAGER
+        - MESSAGING_API
+        - POINT_AD
+        - AD_MANAGER
+    AudienceGroupJobType:
+      description: 职位类型
+      type: string
+      enum:
+        - DIFF_ADD
+    AudienceGroupJobStatus:
+      description: 工作状态
+      type: string
+      enum:
+        - QUEUED
+        - WORKING
+        - FINISHED
+        - FAILED
+    AudienceGroupJobFailedType:
+      description: 失败类型
+      type: string
+      enum:
+        - INTERNAL_ERROR
+        - AUDIENCE_GROUP_AUDIENCE_INSUFFICIENT
+    GetAudienceGroupsResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-audience-groups
+      type: object
+      description: 获取多个受众的数据。
+      properties:
+        audienceGroups:
+          description: 受众数据数组。 如果没有与指定过滤器匹配的受众，则将返回空数组。
+          type: array
+          items:
+            $ref: "#/components/schemas/AudienceGroup"
+        hasNextPage:
+          type: boolean
+          description: 当这不是最后一页时为 true。
+        totalCount:
+          type: integer
+          format: int64
+          description: 使用指定过滤器可以返回的受众总数。
+        readWriteAudienceGroupTotalCount:
+          type: integer
+          format: int64
+          description: 在使用指定过滤器可以获得的受众中，更新权限设置为 READ_WRITE 的受众数量。
+        page:
+          type: integer
+          format: int64
+          description: 当前页码。
+        size:
+          type: integer
+          format: int64
+          description: 当前页面上的最大受众数量。
+    GetSharedAudienceGroupsResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-audience-groups
+      type: object
+      description: 获取多个受众的数据。
+      properties:
+        audienceGroups:
+          description: 受众数据数组。 如果没有与指定过滤器匹配的受众，则将返回空数组。
+          type: array
+          items:
+            $ref: "#/components/schemas/AudienceGroup"
+        hasNextPage:
+          type: boolean
+          description: 当这不是最后一页时为 true。
+        totalCount:
+          type: integer
+          format: int64
+          description: 使用指定过滤器可以返回的受众总数。
+        readWriteAudienceGroupTotalCount:
+          type: integer
+          format: int64
+          description: 在使用指定过滤器可以获得的受众中，更新权限设置为 READ_WRITE 的受众数量。
+        page:
+          type: integer
+          format: int64
+          description: 当前页码。
+        size:
+          type: integer
+          format: int64
+          description: 当前页面上的最大受众数量。
+    ErrorResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#error-responses
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: 包含有关错误的信息的消息。
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorDetail"
+          description: 错误详细信息的数组。 如果数组为空，则该属性将不会包含在响应中。
+    ErrorDetail:
+      type: object
+      properties:
+        message:
+          type: string
+          description: 错误的详细信息。 在某些情况下不包含在响应中。
+        property:
+          type: string
+          description: 发生错误的位置。 返回请求的 JSON 字段名称或查询参数名称。 在某些情况下不包含在响应中。

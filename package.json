@@ -1,5 +1,11 @@
 {
+  "type": "module",
+  "scripts": {
+    "sync": "bash scripts/sync-upstream.sh",
+    "translate": "node scripts/translate.mjs"
+  },
   "dependencies": {
+    "google-translate-api-x": "^10.7.1",
     "ibm-openapi-validator": "^0.97.5",
     "js-yaml": "^4.1.0"
   }

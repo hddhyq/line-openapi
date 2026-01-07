@@ -1,0 +1,321 @@
+openapi: 3.0.2
+info:
+  title: LIFF 服务器 API
+  version: 1.0.0
+  description: LIFF 服务器 API。
+servers:
+  - url: https://api.line.me/
+security:
+  - Bearer: []
+tags:
+  - name: liff
+paths:
+  /liff/v1/apps:
+    post:
+      operationId: addLIFFApp
+      externalDocs:
+        url: https://developers.line.biz/en/reference/liff-server/#add-liff-app
+      summary: 创建 LIFF 应用程序
+      tags:
+        - liff
+      description: 将 LIFF 应用程序添加到频道
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddLiffAppRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddLiffAppResponse"
+              example:
+                liffId: "{liffId}"
+        "400":
+          description: |-
+            该状态代码表示以下情况之一：
+             - 请求包含无效值。 
+            - 已达到可添加到频道的 LIFF 应用程序的最大数量。
+        "401":
+          description: 认证失败。
+    get:
+      operationId: getAllLIFFApps
+      externalDocs:
+        url: https://developers.line.biz/en/reference/liff-server/#get-all-liff-apps
+      summary: 获取所有 LIFF 应用
+      description: 获取有关添加到频道的所有 LIFF 应用程序的信息。
+      tags:
+        - liff
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAllLiffAppsResponse"
+              example:
+                apps:
+                  - liffId: "{liffId}"
+                    view:
+                      type: full
+                      url: https://example.com/myservice
+                    description: 快乐纽约
+                    permanentLinkPattern: concat
+                  - liffId: "{liffId}"
+                    view:
+                      type: tall
+                      url: https://example.com/myservice2
+                    features:
+                      ble: true
+                      qrCode: true
+                    permanentLinkPattern: concat
+                    scope:
+                      - profile
+                      - chat_message.write
+                    botPrompt: none
+        "401":
+          description: 认证失败。
+        "404":
+          description: 该频道上没有 LIFF 应用程序。
+  /liff/v1/apps/{liffId}:
+    parameters:
+      - name: liffId
+        in: path
+        required: true
+        description: 待更新的LIFF应用程序的ID
+        schema:
+          type: string
+    put:
+      operationId: updateLIFFApp
+      externalDocs:
+        url: https://developers.line.biz/en/reference/liff-server/#update-liff-app
+      summary: 从频道更新 LIFF 应用程序
+      description: 更新 LIFF 应用程序设置
+      tags:
+        - liff
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLiffAppRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+        "400":
+          description: 请求包含无效值。
+        "401":
+          description: 认证失败。
+        "404":
+          description: |-
+            该状态代码表示以下情况之一：
+             - 指定的 LIFF 应用程序不存在。 
+            - 指定的 LIFF 应用程序已添加到另一个频道。
+    delete:
+      operationId: deleteLIFFApp
+      externalDocs:
+        url: https://developers.line.biz/en/reference/liff-server/#delete-liff-app
+      summary: 从频道中删除 LIFF 应用程序
+      description: 从频道中删除 LIFF 应用程序。
+      tags:
+        - liff
+      responses:
+        "200":
+          description: 好的
+        "401":
+          description: 认证失败。
+        "404":
+          description: |-
+            该状态代码表示以下情况之一：
+             - 指定的 LIFF 应用程序不存在。 
+            - 指定的 LIFF 应用程序已添加到另一个频道。
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      description: 通道访问令牌
+  schemas:
+    AddLiffAppRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/liff-server/#add-liff-app
+      type: object
+      required:
+        - view
+      properties:
+        view:
+          $ref: "#/components/schemas/LiffView"
+        description:
+          type: string
+          description: |-
+            LIFF 应用程序的名称。 
+
+            LIFF 应用程序名称不能包含“LINE”或类似字符串，或不适当的字符串。
+        features:
+          $ref: "#/components/schemas/LiffFeatures"
+        permanentLinkPattern:
+          type: string
+          description: 如何处理 LIFF URL 中的附加信息。 指定“连接”。
+        scope:
+          type: array
+          items:
+            $ref: "#/components/schemas/LiffScope"
+        botPrompt:
+          $ref: "#/components/schemas/LiffBotPrompt"
+    LiffBotPrompt:
+      type: string
+      description: |-
+        使用以下值之一指定机器人链接功能的设置：
+
+         `正常`：在频道同意屏幕中显示将 LINE 官方帐户添加为好友的选项。 
+        `aggressive`：在频道同意屏幕后显示一个屏幕，其中包含将 LINE 官方帐户添加为好友的选项。 
+        `none`: 不显示将 LINE 官方帐户添加为好友的选项。 
+        默认值为无。
+      enum:
+        - normal
+        - aggressive
+        - none
+    LiffView:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/liff-server/#add-liff-app
+      type: object
+      required:
+        - type
+        - url
+      properties:
+        type:
+          description: |-
+            LIFF 应用程序视图的大小。 指定以下值之一：
+             - 紧凑型
+             - 高
+             - 满
+          type: string
+          enum:
+            - compact
+            - tall
+            - full
+        url:
+          type: string
+          format: uri
+          description: |-
+            端点 URL。 这是实现 LIFF 应用程序的 Web 应用程序的 URL
+             （例如 https://example.com）。 
+            当使用 LIFF URL 启动 LIFF 应用程序时使用。 
+            URL 方案必须是 https。 无法指定 URL 片段 (#URL-fragment)。
+        moduleMode:
+          type: boolean
+          description: |-
+            `true` 以模块化模式使用 LIFF 应用程序。 
+            在模块化模式下，不会显示标题中的操作按钮。
+    UpdateLiffView:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/liff-server/#update-liff-app
+      type: object
+      properties:
+        type:
+          description: |-
+            LIFF 应用程序视图的大小。 指定以下值之一：
+             - 紧凑型
+             - 高
+             - 满
+          type: string
+          enum:
+            - compact
+            - tall
+            - full
+        url:
+          type: string
+          format: uri
+          description: |-
+            端点 URL。 这是实现 LIFF 应用程序的 Web 应用程序的 URL
+             （例如 https://example.com）。 
+            当使用 LIFF URL 启动 LIFF 应用程序时使用。 
+            URL 方案必须是 https。 无法指定 URL 片段 (#URL-fragment)。
+        moduleMode:
+          type: boolean
+          description: |-
+            `true` 以模块化模式使用 LIFF 应用程序。 
+            在模块化模式下，不会显示标题中的操作按钮。
+    LiffFeatures:
+      type: object
+      properties:
+        ble:
+          type: boolean
+          description: 如果 LIFF 应用程序支持 LINE Things 的低功耗蓝牙®，则为“true”。 否则为“假”。
+        qrCode:
+          type: boolean
+          description: “true”表示在 LIFF 应用程序中使用二维码读取器。 否则为假。 默认值为“假”。
+          default: false
+    AddLiffAppResponse:
+      type: object
+      required:
+        - liffId
+      properties:
+        liffId:
+          type: string
+    UpdateLiffAppRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/liff-server/#add-liff-app
+      type: object
+      properties:
+        view:
+          $ref: "#/components/schemas/UpdateLiffView"
+        description:
+          type: string
+          description: |-
+            LIFF 应用程序的名称。 
+
+            LIFF 应用程序名称不能包含“LINE”或类似字符串，或不适当的字符串。
+        features:
+          $ref: "#/components/schemas/LiffFeatures"
+        permanentLinkPattern:
+          type: string
+          description: 如何处理 LIFF URL 中的附加信息。 指定“连接”。
+        scope:
+          type: array
+          items:
+            $ref: "#/components/schemas/LiffScope"
+        botPrompt:
+          $ref: "#/components/schemas/LiffBotPrompt"
+    LiffScope:
+      type: string
+      enum:
+        - openid
+        - email
+        - profile
+        - chat_message.write
+      description: |-
+        某些 LIFF SDK 方法运行所需的范围数组。 
+        默认值为 `["profile", "chat_message.write"]`。
+    GetAllLiffAppsResponse:
+      type: object
+      properties:
+        apps:
+          type: array
+          items:
+            $ref: "#/components/schemas/LiffApp"
+    LiffApp:
+      type: object
+      properties:
+        liffId:
+          type: string
+          description: LIFF 应用程序 ID
+        view:
+          $ref: "#/components/schemas/LiffView"
+        description:
+          type: string
+          description: LIFF 应用程序的名称
+        features:
+          $ref: "#/components/schemas/LiffFeatures"
+        permanentLinkPattern:
+          type: string
+          description: 如何处理 LIFF URL 中的附加信息。 返回 concat。
+        scope:
+          type: array
+          items:
+            $ref: "#/components/schemas/LiffScope"
+        botPrompt:
+          $ref: "#/components/schemas/LiffBotPrompt"

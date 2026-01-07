@@ -1,0 +1,5742 @@
+openapi: 3.0.0
+info:
+  title: LINE 消息 API
+  version: 0.0.1
+  description: 本文档描述了 LINE 消息 API。
+servers:
+  - url: https://api.line.me
+security:
+  - Bearer: []
+tags:
+  - name: messaging-api
+  - name: messaging-api-blob
+paths:
+  /v2/bot/channel/webhook/endpoint:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-webhook-endpoint-information
+      tags:
+        - messaging-api
+      operationId: getWebhookEndpoint
+      description: 获取 webhook 端点信息
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetWebhookEndpointResponse"
+              examples:
+                ACTIVE:
+                  summary: 如果设置了 Webhook URL 并且启用了 Webhook 使用
+                  value:
+                    endpoint: https://example.com/test
+                    active: true
+                INACTIVE:
+                  summary: 如果设置了 Webhook URL 并且禁用了 Webhook 使用
+                  value:
+                    endpoint: https://example.com/test
+                    active: false
+    put:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#set-webhook-endpoint-url
+      tags:
+        - messaging-api
+      operationId: setWebhookEndpoint
+      description: 设置 Webhook 端点 URL
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetWebhookEndpointRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/channel/webhook/test:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#test-webhook-endpoint
+      tags:
+        - messaging-api
+      operationId: testWebhookEndpoint
+      description: 测试 webhook 端点
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestWebhookEndpointRequest"
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestWebhookEndpointResponse"
+              example:
+                success: true
+                timestamp: "2020-09-30T05:38:20.031Z"
+                statusCode: 200
+                reason: OK
+                detail: "200"
+  /v2/bot/message/{messageId}/content:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-content
+      servers:
+        - url: https://api-data.line.me
+      tags:
+        - messaging-api-blob
+      operationId: getMessageContent
+      description: 下载用户发送的图像、视频和音频数据。
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          description: 视频或音频消息ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 好的
+          content:
+            "*/*":
+              schema:
+                description: 斑点响应
+                type: string
+                format: binary
+  /v2/bot/message/{messageId}/content/preview:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-image-or-video-preview
+      servers:
+        - url: https://api-data.line.me
+      tags:
+        - messaging-api-blob
+      operationId: getMessageContentPreview
+      description: 获取图像或视频的预览图像
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          description: 图片或视频的消息ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 好的
+          content:
+            "*/*":
+              schema:
+                type: string
+                format: binary
+                description: 斑点响应
+  /v2/bot/message/{messageId}/content/transcoding:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#verify-video-or-audio-preparation-status
+      servers:
+        - url: https://api-data.line.me
+      tags:
+        - messaging-api-blob
+      operationId: getMessageContentTranscodingByMessageId
+      description: 验证视频或音频的准备状态以获取
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          description: 视频或音频消息ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMessageContentTranscodingResponse"
+              example:
+                status: processing
+  /v2/bot/message/reply:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-reply-message
+      tags:
+        - messaging-api
+      operationId: replyMessage
+      description: 发送回复消息
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReplyMessageRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReplyMessageResponse"
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: 请求过多
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/message/push:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-push-message
+      tags:
+        - messaging-api
+      operationId: pushMessage
+      description: 随时向用户发送消息、群聊或多人聊天。
+      parameters:
+        - name: X-Line-Retry-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: |-
+            重试键。 
+            指定由任何方法生成的十六进制格式的 UUID（例如“123e4567-e89b-12d3-a456-426614174000”）。 
+            重试密钥不是由 LINE 生成的。 每个开发人员必须生成自己的重试密钥。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushMessageRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushMessageResponse"
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 禁止
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: 冲突
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: 请求过多
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/message/multicast:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-multicast-message
+      tags:
+        - messaging-api
+      operationId: multicast
+      description: 一个 API，可以有效地将相同的消息发送到多个用户 ID。 您无法向群聊或多人聊天发送消息。
+      parameters:
+        - name: X-Line-Retry-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: |-
+            重试键。 
+            指定由任何方法生成的十六进制格式的 UUID（例如“123e4567-e89b-12d3-a456-426614174000”）。 
+            重试密钥不是由 LINE 生成的。 每个开发人员必须生成自己的重试密钥。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MulticastRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MulticastResponse"
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 禁止
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: 冲突
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: 请求过多
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/message/narrowcast:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-narrowcast-message
+      tags:
+        - messaging-api
+      operationId: narrowcast
+      description: 发送窄播消息
+      parameters:
+        - name: X-Line-Retry-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: |-
+            重试键。 
+            指定由任何方法生成的十六进制格式的 UUID（例如“123e4567-e89b-12d3-a456-426614174000”）。 
+            重试密钥不是由 LINE 生成的。 每个开发人员必须生成自己的重试密钥。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NarrowcastRequest"
+        required: true
+      responses:
+        "202":
+          description: 公认
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NarrowcastResponse"
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 禁止
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: 冲突
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: 请求过多
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/message/progress/narrowcast:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-narrowcast-progress-status
+      tags:
+        - messaging-api
+      operationId: getNarrowcastProgress
+      description: 获取窄播消息的状态。
+      parameters:
+        - name: requestId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 窄播消息的请求 ID。 每个消息传递 API 请求都有一个请求 ID。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NarrowcastProgressResponse"
+              example:
+                phase: waiting
+                acceptedTime: {}
+  /v2/bot/message/broadcast:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-broadcast-message
+      tags:
+        - messaging-api
+      operationId: broadcast
+      description: 随时向多个用户发送消息。
+      parameters:
+        - name: X-Line-Retry-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: |-
+            重试键。 
+            指定由任何方法生成的十六进制格式的 UUID（例如“123e4567-e89b-12d3-a456-426614174000”）。 
+            重试密钥不是由 LINE 生成的。 每个开发人员必须生成自己的重试密钥。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BroadcastRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BroadcastResponse"
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 禁止
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: 冲突
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: 请求过多
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/message/quota:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-quota
+      tags:
+        - messaging-api
+      operationId: getMessageQuota
+      description: 获取当月发送消息的目标限制。 返回空闲消息和附加消息的总数。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageQuotaResponse"
+              example:
+                type: limited
+                value: 1000
+  /v2/bot/message/quota/consumption:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-consumption
+      tags:
+        - messaging-api
+      operationId: getMessageQuotaConsumption
+      description: 获取当月发送的消息数。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuotaConsumptionResponse"
+              example:
+                totalUsage: 500
+  /v2/bot/message/delivery/reply:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-number-of-reply-messages
+      tags:
+        - messaging-api
+      operationId: getNumberOfSentReplyMessages
+      description: 获取已发送回复消息数
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+          description: |-
+            消息发送日期
+
+             格式：`yyyyMMdd`（例如`20191231`）
+             时区：UTC+9
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NumberOfMessagesResponse"
+              example:
+                status: ready
+                success: 10000
+  /v2/bot/message/delivery/push:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-number-of-push-messages
+      tags:
+        - messaging-api
+      operationId: getNumberOfSentPushMessages
+      description: 获取已发送的推送消息数量
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+          description: |-
+            消息发送日期
+
+             格式：`yyyyMMdd`（例如`20191231`）
+             时区：UTC+9
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NumberOfMessagesResponse"
+              example:
+                status: ready
+                success: 10000
+  /v2/bot/message/delivery/multicast:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-number-of-multicast-messages
+      tags:
+        - messaging-api
+      operationId: getNumberOfSentMulticastMessages
+      description: 获取已发送的组播消息数
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+          description: |-
+            消息发送日期
+
+             格式：`yyyyMMdd`（例如`20191231`）
+             时区：UTC+9
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NumberOfMessagesResponse"
+              example:
+                status: ready
+                success: 10000
+  /v2/bot/message/delivery/broadcast:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-number-of-broadcast-messages
+      tags:
+        - messaging-api
+      operationId: getNumberOfSentBroadcastMessages
+      description: 获取发送的广播消息数量
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: ^[0-9]{8}$
+          description: |-
+            消息发送日期
+
+             格式：yyyyMMdd（例如 20191231）
+             时区：UTC+9
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NumberOfMessagesResponse"
+              example:
+                status: ready
+                success: 10000
+  /v2/bot/message/validate/reply:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#validate-message-objects-of-reply-message
+      tags:
+        - messaging-api
+      operationId: validateReply
+      description: 验证回复消息的消息对象
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValidateMessageRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/message/validate/push:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#validate-message-objects-of-push-message
+      tags:
+        - messaging-api
+      operationId: validatePush
+      description: 验证推送消息的消息对象
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValidateMessageRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/message/validate/multicast:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#validate-message-objects-of-multicast-message
+      tags:
+        - messaging-api
+      operationId: validateMulticast
+      description: 验证多播消息的消息对象
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValidateMessageRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/message/validate/narrowcast:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#validate-message-objects-of-narrowcast-message
+      tags:
+        - messaging-api
+      operationId: validateNarrowcast
+      description: 验证窄播消息的消息对象
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValidateMessageRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/message/validate/broadcast:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#validate-message-objects-of-broadcast-message
+      tags:
+        - messaging-api
+      operationId: validateBroadcast
+      description: 验证广播消息的消息对象
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValidateMessageRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/message/aggregation/info:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-number-of-units-used-this-month
+      tags:
+        - messaging-api
+      operationId: getAggregationUnitUsage
+      description: 获取本月使用的单位数
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAggregationUnitUsageResponse"
+              example:
+                numOfCustomAggregationUnits: 22
+  /v2/bot/message/aggregation/list:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-name-list-of-units-used-this-month
+      tags:
+        - messaging-api
+      operationId: getAggregationUnitNameList
+      description: 获取本月使用的单位名称列表
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 每个请求可以获得的聚合单元的最大数量。
+        - name: start
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |-
+            在响应中返回的 JSON 对象的下一个属性中找到的继续标记的值。 
+            如果您无法在一次请求中获取所有聚合单元，请包含此参数以获取剩余数组。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAggregationUnitNameListResponse"
+              example:
+                customAggregationUnits:
+                  - promotion_a
+                  - promotion_b
+                next: jxEWCEEP...
+  /v2/bot/profile/{userId}:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-profile
+      tags:
+        - messaging-api
+      operationId: getProfile
+      description: 获取个人资料
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 用户身份
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfileResponse"
+              example:
+                displayName: LINE taro
+                userId: U4af4980629...
+                language: en
+                pictureUrl: https://obs.line-apps.com/...
+                statusMessage: Hello, LINE!
+  /v2/bot/followers/ids:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-follower-ids
+      tags:
+        - messaging-api
+      operationId: getFollowers
+      description: 获取将您的 LINE 官方帐户添加为好友的用户列表
+      parameters:
+        - name: start
+          in: query
+          required: false
+          description: |-
+            在响应中返回的 JSON 对象的下一个属性中找到的继续标记的值。 
+            包含此参数可获取下一个用户 ID 数组。
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: 在单个请求中检索的用户 ID 的最大数量。
+          schema:
+            type: integer
+            format: int32
+            default: 300
+            maximum: 1000
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetFollowersResponse"
+              example:
+                userIds:
+                  - U4af4980629...
+                  - U0c229f96c4...
+                  - U95afb1d4df...
+                next: yANU9IA...
+  /v2/bot/info:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-bot-info
+      tags:
+        - messaging-api
+      operationId: getBotInfo
+      description: 获取机器人信息
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotInfoResponse"
+              example:
+                userId: Ub9952f8...
+                basicId: "@216ru..."
+                displayName: Example name
+                pictureUrl: https://obs.line-apps.com/...
+                chatMode: chat
+                markAsReadMode: manual
+  /v2/bot/group/{groupId}/member/{userId}:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-group-member-profile
+      tags:
+        - messaging-api
+      operationId: getGroupMemberProfile
+      description: 获取群聊成员资料
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 组号
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 用户身份
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupUserProfileResponse"
+              example:
+                displayName: LINE taro
+                userId: U4af4980629...
+                pictureUrl: https://obs.line-apps.com/...
+  /v2/bot/room/{roomId}/member/{userId}:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-room-member-profile
+      tags:
+        - messaging-api
+      operationId: getRoomMemberProfile
+      description: 获取多人聊天会员资料
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 房间号
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 用户身份
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomUserProfileResponse"
+              example:
+                displayName: LINE taro
+                userId: U4af4980629...
+                pictureUrl: https://obs.line-apps.com/...
+  /v2/bot/group/{groupId}/members/ids:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-group-member-user-ids
+      tags:
+        - messaging-api
+      operationId: getGroupMembersIds
+      description: 获取群聊成员用户ID
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 组号
+        - name: start
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |-
+            在响应中返回的 JSON 对象的“next”属性中找到的继续标记的值。 
+            包含此参数可获取组成员的下一个用户 ID 数组。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembersIdsResponse"
+              example:
+                memberIds:
+                  - U4af4980629...
+                  - U0c229f96c4...
+                  - U95afb1d4df...
+                next: jxEWCEEP...
+  /v2/bot/room/{roomId}/members/ids:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-room-member-user-ids
+      tags:
+        - messaging-api
+      operationId: getRoomMembersIds
+      description: 获取多人聊天成员用户ID
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 房间号
+        - name: start
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |-
+            在响应中返回的 JSON 对象的“next”属性中找到的继续标记的值。 
+            包含此参数可获取组成员的下一个用户 ID 数组。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembersIdsResponse"
+              example:
+                memberIds:
+                  - U4af4980629...
+                  - U0c229f96c4...
+                  - U95afb1d4df...
+                next: jxEWCEEP...
+  /v2/bot/group/{groupId}/leave:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#leave-group
+      tags:
+        - messaging-api
+      operationId: leaveGroup
+      description: 离开群聊
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 组号
+      responses:
+        "200":
+          description: 好的
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 未找到
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/room/{roomId}/leave:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#leave-room
+      tags:
+        - messaging-api
+      operationId: leaveRoom
+      description: 离开多人聊天
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 房间号
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/group/{groupId}/summary:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-group-summary
+      tags:
+        - messaging-api
+      operationId: getGroupSummary
+      description: 获取群聊摘要
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 组号
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupSummaryResponse"
+              example:
+                groupId: Ca56f94637c...
+                groupName: Group name
+                pictureUrl: https://profile.line-scdn.net/abcdefghijklmn
+  /v2/bot/group/{groupId}/members/count:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-members-group-count
+      tags:
+        - messaging-api
+      operationId: getGroupMemberCount
+      description: Get number of users in a group chat
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 组号
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupMemberCountResponse"
+              example:
+                count: 3
+  /v2/bot/room/{roomId}/members/count:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-members-room-count
+      tags:
+        - messaging-api
+      operationId: getRoomMemberCount
+      description: 获取多人聊天中的用户数量
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 房间号
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomMemberCountResponse"
+              example:
+                count: 3
+  /v2/bot/richmenu:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-rich-menu
+      tags:
+        - messaging-api
+      operationId: createRichMenu
+      description: 创建丰富的菜单
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RichMenuRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RichMenuIdResponse"
+              example:
+                richMenuId: "{richMenuId}"
+  /v2/bot/richmenu/validate:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#validate-rich-menu-object
+      tags:
+        - messaging-api
+      operationId: validateRichMenuObject
+      description: 验证丰富的菜单对象
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RichMenuRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/richmenu/{richMenuId}/content:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#download-rich-menu-image
+      servers:
+        - url: https://api-data.line.me
+      tags:
+        - messaging-api-blob
+      operationId: getRichMenuImage
+      description: 下载丰富的菜单图像。
+      parameters:
+        - name: richMenuId
+          in: path
+          required: true
+          description: 需要下载图片的丰富菜单ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 好的
+          content:
+            "*/*":
+              schema:
+                type: string
+                format: binary
+                description: 斑点响应
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#upload-rich-menu-image
+      servers:
+        - url: https://api-data.line.me
+      tags:
+        - messaging-api-blob
+      operationId: setRichMenuImage
+      description: 上传丰富的菜单图片
+      parameters:
+        - name: richMenuId
+          in: path
+          required: true
+          description: 附加图像的丰富菜单的 ID
+          schema:
+            type: string
+      requestBody:
+        content:
+          "*/*":
+            schema:
+              description: 斑点请求
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/richmenu/{richMenuId}:
+    parameters:
+      - name: richMenuId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 丰富菜单ID
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-rich-menu
+      tags:
+        - messaging-api
+      operationId: getRichMenu
+      description: 通过丰富菜单ID获取丰富菜单。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RichMenuResponse"
+              example:
+                richMenuId: "{richMenuId}"
+                size:
+                  width: 2500
+                  height: 1686
+                name: nice rich menu
+                chatBarText: click
+                selected: false
+                areas:
+                  - bounds:
+                      x: 0
+                      "y": 0
+                      width: 2500
+                      height: 1686
+                    action:
+                      type: postback
+                      data: action=buy&itemid=123
+    delete:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#delete-rich-menu
+      tags:
+        - messaging-api
+      operationId: deleteRichMenu
+      description: 删除丰富的菜单。
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/richmenu/list:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-rich-menu-list
+      tags:
+        - messaging-api
+      operationId: getRichMenuList
+      description: 获取丰富的菜单列表
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RichMenuListResponse"
+              example:
+                richmenus:
+                  - richMenuId: "{richMenuId}"
+                    size:
+                      width: 2500
+                      height: 1686
+                    selected: false
+                    name: nice rich menu
+                    chatBarText: click
+                    areas:
+                      - bounds:
+                          x: 0
+                          "y": 0
+                          width: 2500
+                          height: 1686
+                        action:
+                          type: postback
+                          data: action=buy&itemid=123
+  /v2/bot/user/all/richmenu/{richMenuId}:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#set-default-rich-menu
+      tags:
+        - messaging-api
+      operationId: setDefaultRichMenu
+      description: 设置默认丰富菜单
+      parameters:
+        - name: richMenuId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 丰富菜单ID
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/user/all/richmenu:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-default-rich-menu-id
+      tags:
+        - messaging-api
+      operationId: getDefaultRichMenuId
+      description: 获取使用 Messaging API 设置的默认丰富菜单的 ID。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RichMenuIdResponse"
+              example:
+                richMenuId: "{richMenuId}"
+    delete:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#cancel-default-rich-menu
+      tags:
+        - messaging-api
+      operationId: cancelDefaultRichMenu
+      description: 取消默认丰富菜单
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/richmenu/alias:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-rich-menu-alias
+      tags:
+        - messaging-api
+      operationId: createRichMenuAlias
+      description: 创建丰富的菜单别名
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRichMenuAliasRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/richmenu/alias/{richMenuAliasId}:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-rich-menu-alias-by-id
+      tags:
+        - messaging-api
+      operationId: getRichMenuAlias
+      description: 获取丰富的菜单别名信息
+      parameters:
+        - name: richMenuAliasId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 您想要获取其信息的丰富菜单别名ID。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RichMenuAliasResponse"
+              example:
+                richMenuAliasId: richmenu-alias-a
+                richMenuId: richmenu-88c05ef6921ae53f8b58a25f3a65faf7
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#update-rich-menu-alias
+      tags:
+        - messaging-api
+      operationId: updateRichMenuAlias
+      description: 更新丰富的菜单别名
+      parameters:
+        - name: richMenuAliasId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The rich menu alias ID you want to update.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRichMenuAliasRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#delete-rich-menu-alias
+      tags:
+        - messaging-api
+      operationId: deleteRichMenuAlias
+      description: 删除丰富的菜单别名
+      parameters:
+        - name: richMenuAliasId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 您要删除的丰富菜单别名 ID。
+      responses:
+        "200":
+          description: 好的
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/richmenu/alias/list:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-rich-menu-alias-list
+      tags:
+        - messaging-api
+      operationId: getRichMenuAliasList
+      description: 获取丰富菜单别名列表
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RichMenuAliasListResponse"
+              examples:
+                TWO_ALIASES:
+                  summary: 如果您有 2 个丰富的菜单别名
+                  value:
+                    aliases:
+                      - richMenuAliasId: richmenu-alias-a
+                        richMenuId: richmenu-862e6ad6c267d2ddf3f42bc78554f6a4
+                      - richMenuAliasId: richmenu-alias-b
+                        richMenuId: richmenu-88c05ef6921ae53f8b58a25f3a65faf7
+                NO_ALIASES:
+                  summary: 如果您有 0 个丰富的菜单别名
+                  value:
+                    aliases: []
+  /v2/bot/user/{userId}/richmenu:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 用户身份。 在 webhook 事件对象的“source”对象中找到。 请勿使用 LINE 中使用的 LINE ID。
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-rich-menu-id-of-user
+      tags:
+        - messaging-api
+      operationId: getRichMenuIdOfUser
+      description: 获取用户的丰富菜单ID
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RichMenuIdResponse"
+              example:
+                richMenuId: "{richMenuId}"
+    delete:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#unlink-rich-menu-from-user
+      tags:
+        - messaging-api
+      operationId: unlinkRichMenuIdFromUser
+      description: 取消丰富菜单与用户的链接
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/user/{userId}/richmenu/{richMenuId}:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#link-rich-menu-to-user
+      tags:
+        - messaging-api
+      operationId: linkRichMenuIdToUser
+      description: 将丰富的菜单链接到用户。
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 用户身份。 在 webhook 事件对象的“source”对象中找到。 请勿使用 LINE 中使用的 LINE ID。
+        - name: richMenuId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 丰富菜单ID
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/richmenu/bulk/link:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#link-rich-menu-to-users
+      tags:
+        - messaging-api
+      operationId: linkRichMenuIdToUsers
+      description: 将丰富的菜单链接到多个用户
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RichMenuBulkLinkRequest"
+        required: true
+      responses:
+        "202":
+          description: 公认
+  /v2/bot/richmenu/bulk/unlink:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#unlink-rich-menu-from-users
+      tags:
+        - messaging-api
+      operationId: unlinkRichMenuIdFromUsers
+      description: 取消与多个用户的丰富菜单的链接
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RichMenuBulkUnlinkRequest"
+        required: true
+      responses:
+        "202":
+          description: 公认
+  /v2/bot/richmenu/batch:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#batch-control-rich-menus-of-users
+      tags:
+        - messaging-api
+      operationId: richMenuBatch
+      description: |-
+        您可以使用此端点批量控制使用端点链接到用户的丰富菜单，例如将丰富菜单链接到用户。 
+        可以进行以下操作：
+
+         1. 对于链接到特定丰富菜单的所有用户，将一个丰富菜单替换为另一个丰富菜单
+         2. 为链接到特定丰富菜单的所有用户取消链接丰富菜单
+         3.为所有链接丰富菜单的用户取消链接丰富菜单
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RichMenuBatchRequest"
+        required: true
+      responses:
+        "202":
+          description: 公认
+  /v2/bot/richmenu/validate/batch:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#validate-batch-control-rich-menus-request
+      tags:
+        - messaging-api
+      operationId: validateRichMenuBatchRequest
+      description: 验证批量替换或取消链接链接的丰富菜单端点的请求正文。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RichMenuBatchRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/richmenu/progress/batch:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-batch-control-rich-menus-progress-status
+      tags:
+        - messaging-api
+      operationId: getRichMenuBatchProgress
+      description: 批量获取链接的丰富菜单的替换或取消链接状态。
+      parameters:
+        - name: requestId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 用于批量控制链接到用户的丰富菜单的请求ID。 每个消息传递 API 请求都有一个请求 ID。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RichMenuBatchProgressResponse"
+              example:
+                phase: ongoing
+                acceptedTime: {}
+  /v2/bot/user/{userId}/linkToken:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#issue-link-token
+      tags:
+        - messaging-api
+      operationId: issueLinkToken
+      description: 发行链接令牌
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: |-
+            要链接的 LINE 帐户的用户 ID。 
+            在帐户链接事件对象的“source”对象中找到。 请勿使用 LINE 中使用的 LINE ID。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IssueLinkTokenResponse"
+              example:
+                linkToken: NMZTNuVrPTqlr2IF8Bnymkb7rXfYv5EY
+  /v2/bot/message/markAsRead:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#mark-messages-from-users-as-read
+      tags:
+        - messaging-api
+      operationId: markMessagesAsRead
+      description: 将用户的消息标记为已读
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarkMessagesAsReadRequest"
+            example:
+              chat:
+                userId: Uxxxxxxxxxxxxxxxxxx
+        required: true
+      responses:
+        "200":
+          description: 好的
+  /bot/pnp/push:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#send-line-notification-message
+      tags:
+        - messaging-api
+      operationId: pushMessagesByPhone
+      description: 发送LINE通知消息
+      parameters:
+        - name: X-Line-Delivery-Tag
+          in: header
+          required: false
+          schema:
+            type: string
+            minLength: 16
+            maxLength: 100
+          description: 通过 Webhook 在交付完成事件的 Delivery.data 属性中返回的字符串。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PnpMessagesRequest"
+        required: true
+      responses:
+        "200":
+          description: 好的
+        "422":
+          description: 无法处理的实体
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/message/delivery/pnp:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#get-number-of-sent-line-notification-messages
+      tags:
+        - messaging-api
+      operationId: getPNPMessageStatistics
+      description: 获取已发送的LINE通知消息的数量
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: ^[0-9]{8}$
+          description: |-
+            消息发送日期
+
+             格式：`yyyyMMdd`（示例：`20211231`）
+             时区：UTC+9
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NumberOfMessagesResponse"
+              example:
+                status: ready
+                success: 3
+  /v2/bot/membership/subscription/{userId}:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-a-users-membership-subscription-status
+      tags:
+        - messaging-api
+      operationId: getMembershipSubscription
+      description: 获取用户的会员订阅。
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 用户身份
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMembershipSubscriptionResponse"
+              example:
+                subscriptions:
+                  - membership:
+                      membershipId: 3189
+                      title: 基本计划
+                      description: 您每个星期六都会收到消息和照片。
+                      benefits:
+                        - Members Only Messages
+                        - Members Only Photos
+                      price: 500
+                      currency: JPY
+                    user:
+                      membershipNo: 1
+                      joinedTime: 1707214784
+                      nextBillingDate: "2024-02-08"
+                      totalSubscriptionMonths: 1
+        "400":
+          description: 指定的用户 ID 无效。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 无法获取有关用户订阅的会员资格的信息。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/membership/list:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-membership-plans
+      tags:
+        - messaging-api
+      operationId: getMembershipList
+      description: 获取会员列表。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembershipListResponse"
+              example:
+                memberships:
+                  - membershipId: 3189
+                    title: 基本计划
+                    description: 您每个星期六都会收到消息和照片。
+                    benefits:
+                      - Members Only Messages
+                      - Members Only Photos
+                    price: 500
+                    currency: JPY
+                    memberCount: 1
+                    memberLimit: null
+                    isInAppPurchase: true
+                    isPublished: true
+                  - membershipId: 3213
+                    title: 高级计划
+                    description: 参加特别聚会的邀请。
+                    benefits:
+                      - Members Only Party
+                    price: 1500
+                    currency: JPY
+                    memberCount: 0
+                    memberLimit: null
+                    isInAppPurchase: false
+                    isPublished: true
+        "404":
+          description: 无法获取有关会员资格的信息。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/membership/{membershipId}/users/ids:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-membership-user-ids
+      tags:
+        - messaging-api
+      operationId: getJoinedMembershipUsers
+      description: 获取加入会员的用户 ID 列表。
+      parameters:
+        - name: start
+          in: query
+          required: false
+          description: |-
+            用于获取下一个剩余成员资格用户 ID 的继续令牌。 
+            仅当上次请求的 userIds 属性中存在未返回的剩余用户 ID 时才返回。 
+            延续令牌将在 24 小时（86,400 秒）后过期。
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: |-
+            此 API 调用返回的最大项目数。 
+            默认情况下，该值设置为 300，但可接受的最大值为 1000。
+          schema:
+            type: integer
+            format: int32
+            default: 300
+            maximum: 1000
+            minimum: 1
+        - name: membershipId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 会员计划 ID。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetJoinedMembershipUsersResponse"
+              example:
+                userIds:
+                  - U4af4980629...
+                  - U0c229f96c4...
+                  - U95afb1d4df...
+                next: jxEWCEEP...
+        "400":
+          description: "`start` 不正确或已过期，或者 `limit` 低于 1 或超过 1000。"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 会员 ID 不属于机器人或不存在。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/coupon:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-coupons-list
+      tags:
+        - messaging-api
+      operationId: listCoupon
+      description: 获取优惠券的分页列表。
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            uniqueItems: true
+            type: array
+            items:
+              type: string
+              enum:
+                - DRAFT
+                - RUNNING
+                - CLOSED
+          description: 按优惠券的状态过滤优惠券。
+        - in: query
+          name: start
+          required: false
+          schema:
+            type: string
+          description: 用于检索下一页结果的分页标记。
+        - in: query
+          name: limit
+          required: false
+          schema:
+            maximum: 100
+            minimum: 1
+            type: integer
+            format: int32
+            default: 20
+          description: 每个请求返回的优惠券的最大数量。
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessagingApiPagerCouponListResponse"
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-coupon
+      tags:
+        - messaging-api
+      operationId: createCoupon
+      description: 创建新优惠券。 定义优惠券详细信息，例如类型、标题和有效期。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CouponCreateRequest"
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CouponCreateResponse"
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/coupon/{couponId}:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-coupon
+      tags:
+        - messaging-api
+      operationId: getCouponDetail
+      description: 获取优惠券详情
+      parameters:
+        - in: path
+          name: couponId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CouponResponse"
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 未找到
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/coupon/{couponId}/close:
+    put:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#discontinue-coupon
+      tags:
+        - messaging-api
+      operationId: closeCoupon
+      description: 关闭优惠券
+      parameters:
+        - in: path
+          name: couponId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 好的
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 未找到
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "410":
+          description: 走了
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/chat/loading/start:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#display-a-loading-indicator
+      tags:
+        - messaging-api
+      operationId: showLoadingAnimation
+      description: 在用户和 LINE 官方帐户之间的一对一聊天中显示加载动画。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShowLoadingAnimationRequest"
+        required: true
+      responses:
+        "202":
+          description: 公认
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShowLoadingAnimationResponse"
+        "400":
+          description: An invalid chat ID is specified, or the loadingSeconds value is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v2/bot/chat/markAsRead:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#mark-as-read
+      tags:
+        - messaging-api
+      operationId: markMessagesAsReadByToken
+      description: 通过令牌将来自用户的消息标记为已读
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarkMessagesAsReadByTokenRequest"
+            example:
+              markAsReadToken: nz0x74mZT2mRn...
+        required: true
+      responses:
+        "200":
+          description: 好的
+        "400":
+          description: 指定了无效的 markAsReadToken。 令牌必须由通过 Webhook 接收令牌的机器人使用。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      description: 通道访问令牌
+  schemas:
+    GetWebhookEndpointResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-webhook-endpoint-information
+      required:
+        - endpoint
+        - active
+      type: object
+      properties:
+        endpoint:
+          type: string
+          format: uri
+          description: 网络钩子 URL
+        active:
+          type: boolean
+          description: |-
+            Webhook 使用状态。 仅当启用时，才将 webhook 事件从 LINE 平台发送到 webhook URL。 
+
+            `true`：启用 Webhook 使用。 
+            `false`：禁用 Webhook 使用。
+    SetWebhookEndpointRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#set-webhook-endpoint-url
+      required:
+        - endpoint
+      type: object
+      properties:
+        endpoint:
+          maxLength: 500
+          minLength: 0
+          type: string
+          format: uri
+          description: 有效的 Webhook URL。
+    TestWebhookEndpointRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#test-webhook-endpoint
+      type: object
+      properties:
+        endpoint:
+          maxLength: 500
+          minLength: 0
+          type: string
+          format: uri
+          description: 要验证的 Webhook URL。
+    TestWebhookEndpointResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#test-webhook-endpoint
+      required:
+        - statusCode
+        - timestamp
+        - reason
+        - detail
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 从 LINE 平台到 webhook URL 的通信结果。
+        timestamp:
+          type: string
+          format: date-time
+          description: 事件发生的时间（以毫秒为单位）。 即使在重新传递 Webhook 的情况下，它也代表事件发生的时间，而不是重新传递的时间。
+        statusCode:
+          type: integer
+          format: int32
+          description: HTTP 状态代码。 如果未收到 Webhook 响应，状态代码将设置为零或负数。
+        reason:
+          type: string
+          description: 回应的原因。
+        detail:
+          type: string
+          description: 响应的详细信息。
+    GetMessageContentTranscodingResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#verify-video-or-audio-preparation-status
+      description: 转码响应
+      required:
+        - status
+      type: object
+      properties:
+        status:
+          type: string
+          description: |-
+            准备状态。 其中之一：
+
+             `processing`：准备获取内容。 
+            `succeeded`：准备获取内容。 您可以获取用户发送的内容。 
+            `failed`: 准备获取内容失败。
+          enum:
+            - processing
+            - succeeded
+            - failed
+    ReplyMessageRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-reply-message
+      required:
+        - messages
+        - replyToken
+      type: object
+      properties:
+        replyToken:
+          type: string
+          description: 通过 webhook 收到的replyToken。
+        messages:
+          description: 消息列表。
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        notificationDisabled:
+          $ref: "#/components/schemas/NotificationDisabled"
+    ReplyMessageResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-reply-message-response
+      required:
+        - sentMessages
+      type: object
+      properties:
+        sentMessages:
+          description: 已发送消息的数组。
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/SentMessage"
+    SentMessage:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: string
+          description: 已发送消息的 ID。
+        quoteToken:
+          type: string
+          description: 引用消息的标记。 仅当可指定为报价目标的消息对象作为推送或回复消息发送时才包含在内。
+    PushMessageRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-push-message
+      required:
+        - messages
+        - to
+      type: object
+      properties:
+        to:
+          type: string
+          description: 接收者的 ID。
+        messages:
+          description: 消息对象列表。
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        notificationDisabled:
+          $ref: "#/components/schemas/NotificationDisabled"
+        customAggregationUnits:
+          description: |-
+            聚合单元名称列表。 区分大小写。 
+            该功能仅限已提交申请的企业用户使用。
+          type: array
+          items:
+            type: string
+    NotificationDisabled:
+      type: boolean
+      default: false
+      description: |-
+        `true`：发送消息时用户不会收到推送通知。 
+        `false`：发送消息时用户会收到推送通知（除非他们在 LINE 和/或其设备中禁用了推送通知）。 
+        默认值为 false。
+    PushMessageResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-push-message-response
+      required:
+        - sentMessages
+      type: object
+      properties:
+        sentMessages:
+          description: 已发送消息的数组。
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/SentMessage"
+    MulticastRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-multicast-message
+      required:
+        - messages
+        - to
+      type: object
+      properties:
+        messages:
+          maxItems: 5
+          minItems: 1
+          type: array
+          description: 要发送的消息
+          items:
+            $ref: "#/components/schemas/Message"
+        to:
+          maxItems: 500
+          minItems: 1
+          type: array
+          description: 用户 ID 数组。 使用 webhook 事件对象中返回的 userId 值。 请勿使用 LINE 上找到的 LINE ID。
+          items:
+            type: string
+        notificationDisabled:
+          $ref: "#/components/schemas/NotificationDisabled"
+        customAggregationUnits:
+          type: array
+          maxItems: 1
+          description: 聚合单位名称。 区分大小写。
+          items:
+            type: string
+            maxLength: 30
+            minLength: 1
+            pattern: ^[a-zA-Z0-9_]{1,30}$
+    MulticastResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-multicast-response
+      type: object
+    NarrowcastRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-narrowcast-message
+      required:
+        - messages
+      type: object
+      properties:
+        messages:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+          description: 消息对象列表。
+        recipient:
+          $ref: "#/components/schemas/Recipient"
+        filter:
+          $ref: "#/components/schemas/Filter"
+        limit:
+          $ref: "#/components/schemas/Limit"
+        notificationDisabled:
+          $ref: "#/components/schemas/NotificationDisabled"
+    NarrowcastResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-narrowcast-response
+      type: object
+    Recipient:
+      type: object
+      description: 接受者
+      properties:
+        type:
+          description: 收件人类型
+          type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          operator: "#/components/schemas/OperatorRecipient"
+          audience: "#/components/schemas/AudienceRecipient"
+          redelivery: "#/components/schemas/RedeliveryRecipient"
+    OperatorRecipient:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Recipient"
+        - type: object
+          properties:
+            and:
+              type: array
+              items:
+                $ref: "#/components/schemas/Recipient"
+              description: 通过取指定收件人对象数组的逻辑与 (AND) 创建新的收件人对象。
+            or:
+              type: array
+              items:
+                $ref: "#/components/schemas/Recipient"
+              description: 通过对指定的收件人对象数组进行逻辑或 (OR) 创建新的收件人对象。
+            not:
+              $ref: "#/components/schemas/Recipient"
+    AudienceRecipient:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Recipient"
+        - type: object
+          properties:
+            audienceGroupId:
+              type: integer
+              format: int64
+    RedeliveryRecipient:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Recipient"
+        - type: object
+          properties:
+            requestId:
+              type: string
+    Filter:
+      type: object
+      description: 窄播过滤器
+      properties:
+        demographic:
+          $ref: "#/components/schemas/DemographicFilter"
+    DemographicFilter:
+      type: object
+      description: 人口统计过滤器
+      properties:
+        type:
+          type: string
+          description: 人口统计过滤器类型
+      discriminator:
+        propertyName: type
+        mapping:
+          age: "#/components/schemas/AgeDemographicFilter"
+          appType: "#/components/schemas/AppTypeDemographicFilter"
+          area: "#/components/schemas/AreaDemographicFilter"
+          gender: "#/components/schemas/GenderDemographicFilter"
+          operator: "#/components/schemas/OperatorDemographicFilter"
+          subscriptionPeriod: "#/components/schemas/SubscriptionPeriodDemographicFilter"
+    AgeDemographicFilter:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/DemographicFilter"
+        - type: object
+          properties:
+            gte:
+              $ref: "#/components/schemas/AgeDemographic"
+            lt:
+              $ref: "#/components/schemas/AgeDemographic"
+    AgeDemographic:
+      type: string
+      enum:
+        - age_15
+        - age_20
+        - age_25
+        - age_30
+        - age_35
+        - age_40
+        - age_45
+        - age_50
+        - age_55
+        - age_60
+        - age_65
+        - age_70
+    AppTypeDemographicFilter:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/DemographicFilter"
+        - type: object
+          properties:
+            oneOf:
+              type: array
+              items:
+                $ref: "#/components/schemas/AppTypeDemographic"
+    AppTypeDemographic:
+      type: string
+      enum:
+        - ios
+        - android
+    AreaDemographicFilter:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/DemographicFilter"
+        - type: object
+          properties:
+            oneOf:
+              type: array
+              items:
+                $ref: "#/components/schemas/AreaDemographic"
+    AreaDemographic:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-narrowcast-message
+      type: string
+      enum:
+        - jp_01
+        - jp_02
+        - jp_03
+        - jp_04
+        - jp_05
+        - jp_06
+        - jp_07
+        - jp_08
+        - jp_09
+        - jp_10
+        - jp_11
+        - jp_12
+        - jp_13
+        - jp_14
+        - jp_15
+        - jp_16
+        - jp_17
+        - jp_18
+        - jp_19
+        - jp_20
+        - jp_21
+        - jp_22
+        - jp_23
+        - jp_24
+        - jp_25
+        - jp_26
+        - jp_27
+        - jp_28
+        - jp_29
+        - jp_30
+        - jp_31
+        - jp_32
+        - jp_33
+        - jp_34
+        - jp_35
+        - jp_36
+        - jp_37
+        - jp_38
+        - jp_39
+        - jp_40
+        - jp_41
+        - jp_42
+        - jp_43
+        - jp_44
+        - jp_45
+        - jp_46
+        - jp_47
+        - tw_01
+        - tw_02
+        - tw_03
+        - tw_04
+        - tw_05
+        - tw_06
+        - tw_07
+        - tw_08
+        - tw_09
+        - tw_10
+        - tw_11
+        - tw_12
+        - tw_13
+        - tw_14
+        - tw_15
+        - tw_16
+        - tw_17
+        - tw_18
+        - tw_19
+        - tw_20
+        - tw_21
+        - tw_22
+        - th_01
+        - th_02
+        - th_03
+        - th_04
+        - th_05
+        - th_06
+        - th_07
+        - th_08
+        - id_01
+        - id_02
+        - id_03
+        - id_04
+        - id_05
+        - id_06
+        - id_07
+        - id_08
+        - id_09
+        - id_10
+        - id_11
+        - id_12
+      x-enum-varnames:
+        - HOKKAIDO
+        - AOMORI
+        - IWATE
+        - MIYAGI
+        - AKITA
+        - YAMAGATA
+        - FUKUSHIMA
+        - IBARAKI
+        - TOCHIGI
+        - GUNMA
+        - SAITAMA
+        - CHIBA
+        - TOKYO
+        - KANAGAWA
+        - NIIGATA
+        - TOYAMA
+        - ISHIKAWA
+        - FUKUI
+        - YAMANASHI
+        - NAGANO
+        - GIFU
+        - SHIZUOKA
+        - AICHI
+        - MIE
+        - SHIGA
+        - KYOTO
+        - OSAKA
+        - HYOUGO
+        - NARA
+        - WAKAYAMA
+        - TOTTORI
+        - SHIMANE
+        - OKAYAMA
+        - HIROSHIMA
+        - YAMAGUCHI
+        - TOKUSHIMA
+        - KAGAWA
+        - EHIME
+        - KOUCHI
+        - FUKUOKA
+        - SAGA
+        - NAGASAKI
+        - KUMAMOTO
+        - OITA
+        - MIYAZAKI
+        - KAGOSHIMA
+        - OKINAWA
+        - TAIPEI_CITY
+        - NEW_TAIPEI_CITY
+        - TAOYUAN_CITY
+        - TAICHUNG_CITY
+        - TAINAN_CITY
+        - KAOHSIUNG_CITY
+        - KEELUNG_CITY
+        - HSINCHU_CITY
+        - CHIAYI_CITY
+        - HSINCHU_COUNTY
+        - MIAOLI_COUNTY
+        - CHANGHUA_COUNTY
+        - NANTOU_COUNTY
+        - YUNLIN_COUNTY
+        - CHIAYI_COUNTY
+        - PINGTUNG_COUNTY
+        - YILAN_COUNTY
+        - HUALIEN_COUNTY
+        - TAITUNG_COUNTY
+        - PENGHU_COUNTY
+        - KINMEN_COUNTY
+        - LIENCHIANG_COUNTY
+        - BANGKOK
+        - PATTAYA
+        - NORTHERN
+        - CENTRAL
+        - SOUTHERN
+        - EASTERN
+        - NORTHEASTERN
+        - WESTERN
+        - BALI
+        - BANDUNG
+        - BANJARMASIN
+        - JABODETABEK
+        - MAKASSAR
+        - MEDAN
+        - PALEMBANG
+        - SAMARINDA
+        - SEMARANG
+        - SURABAYA
+        - YOGYAKARTA
+        - LAINNYA
+      x-enum-descriptions:
+        - "jp_01: 北海道 // Hokkaido"
+        - "jp_02: 青森県 // Aomori"
+        - "jp_03: 岩手県 // Iwate"
+        - "jp_04: 宮城県 // Miyagi"
+        - "jp_05: 秋田県 // Akita"
+        - "jp_06: 山形県 // Yamagata"
+        - "jp_07: 福島県 // Fukushima"
+        - "jp_08: 茨城県 // Ibaraki"
+        - "jp_09: 栃木県 // Tochigi"
+        - "jp_10: 群馬県 // Gunma"
+        - "jp_11: 埼玉県 // Saitama"
+        - "jp_12: 千葉県 // Chiba"
+        - "jp_13: 東京都 // Tokyo"
+        - "jp_14: 神奈川県 // Kanagawa"
+        - "jp_15: 新潟県 // Niigata"
+        - "jp_16: 富山県 // Toyama"
+        - "jp_17: 石川県 // Ishikawa"
+        - "jp_18: 福井県 // Fukui"
+        - "jp_19: 山梨県 // Yamanashi"
+        - "jp_20: 長野県 // Nagano"
+        - "jp_21: 岐阜県 // Gifu"
+        - "jp_22: 静岡県 // Shizuoka"
+        - "jp_23: 愛知県 // Aichi"
+        - "jp_24: 三重県 // Mie"
+        - "jp_25: 滋賀県 // Shiga"
+        - "jp_26: 京都府 // Kyoto"
+        - "jp_27: 大阪府 // Osaka"
+        - "jp_28: 兵庫県 // Hyougo"
+        - "jp_29: 奈良県 // Nara"
+        - "jp_30: 和歌山県 // Wakayama"
+        - "jp_31: 鳥取県 // Tottori"
+        - "jp_32: 島根県 // Shimane"
+        - "jp_33: 岡山県 // Okayama"
+        - "jp_34: 広島県 // Hiroshima"
+        - "jp_35: 山口県 // Yamaguchi"
+        - "jp_36: 徳島県 // Tokushima"
+        - "jp_37: 香川県 // Kagawa"
+        - "jp_38: 愛媛県 // Ehime"
+        - "jp_39: 高知県 // Kouchi"
+        - "jp_40: 福岡県 // Fukuoka"
+        - "jp_41: 佐賀県 // Saga"
+        - "jp_42: 長崎県 // Nagasaki"
+        - "jp_43: 熊本県 // Kumamoto"
+        - "jp_44: 大分県 // Oita"
+        - "jp_45: 宮崎県 // Miyazaki"
+        - "jp_46: 鹿児島県 // Kagoshima"
+        - "jp_47: 沖縄県 // Okinawa"
+        - "tw_01: 台北市 // Taipei City"
+        - "tw_02: 新北市 // New Taipei City"
+        - "tw_03: 桃園市 // Taoyuan City"
+        - "tw_04: 台中市 // Taichung City"
+        - "tw_05: 台南市 // Tainan City"
+        - "tw_06: 高雄市 // Kaohsiung City"
+        - "tw_07: 基隆市 // Keelung City"
+        - "tw_08: 新竹市 // Hsinchu City"
+        - "tw_09: 嘉義市 // Chiayi City"
+        - "tw_10: 新竹県 // Hsinchu County"
+        - "tw_11: 苗栗県 // Miaoli County"
+        - "tw_12: 彰化県 // Changhua County"
+        - "tw_13: 南投県 // Nantou County"
+        - "tw_14: 雲林県 // Yunlin County"
+        - "tw_15: 嘉義県 // Chiayi County"
+        - "tw_16: 屏東県 // Pingtung County"
+        - "tw_17: 宜蘭県 // Yilan County"
+        - "tw_18: 花蓮県 // Hualien County"
+        - "tw_19: 台東県 // Taitung County"
+        - "tw_20: 澎湖県 // Penghu County"
+        - "tw_21: 金門県 // Kinmen County"
+        - "tw_22: 連江県 // Lienchiang County"
+        - "th_01: バンコク // Bangkok"
+        - "th_02: パタヤ // Pattaya"
+        - "th_03: 北部 // Northern"
+        - "th_04: 中央部 // Central"
+        - "th_05: 南部 // Southern"
+        - "th_06: 東部 // Eastern"
+        - "th_07: 東北部 // NorthEastern"
+        - "th_08: 西部 // Western"
+        - "id_01: バリ // Bali"
+        - "id_02: バンドン // Bandung"
+        - "id_03: バンジャルマシン // Banjarmasin"
+        - "id_04: ジャボデタベック (ジャカルタ首都圏) // Jabodetabek"
+        - "id_06: マカッサル // Makassar"
+        - "id_07: メダン // Medan"
+        - "id_08: パレンバン // Palembang"
+        - "id_09: サマリンダ // Samarinda"
+        - "id_10: スマラン // Semarang"
+        - "id_11: スラバヤ // Surabaya"
+        - "id_12: ジョグジャカルタ // Yogyakarta"
+        - "id_05: その他のエリア // Lainnya"
+    GenderDemographicFilter:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/DemographicFilter"
+        - type: object
+          properties:
+            oneOf:
+              type: array
+              items:
+                $ref: "#/components/schemas/GenderDemographic"
+    GenderDemographic:
+      type: string
+      enum:
+        - male
+        - female
+    OperatorDemographicFilter:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/DemographicFilter"
+        - type: object
+          properties:
+            and:
+              type: array
+              items:
+                $ref: "#/components/schemas/DemographicFilter"
+            or:
+              type: array
+              items:
+                $ref: "#/components/schemas/DemographicFilter"
+            not:
+              $ref: "#/components/schemas/DemographicFilter"
+    SubscriptionPeriodDemographicFilter:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/DemographicFilter"
+        - type: object
+          properties:
+            gte:
+              $ref: "#/components/schemas/SubscriptionPeriodDemographic"
+            lt:
+              $ref: "#/components/schemas/SubscriptionPeriodDemographic"
+    SubscriptionPeriodDemographic:
+      type: string
+      enum:
+        - day_7
+        - day_30
+        - day_90
+        - day_180
+        - day_365
+    Limit:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-narrowcast-message
+      type: object
+      description: 窄播的极限
+      properties:
+        max:
+          minimum: 1
+          type: integer
+          format: int32
+          description: |-
+            要发送的窄播消息的最大数量。 
+            使用此参数可以限制发送的窄播消息的数量。 
+            收件人将是随机选择的。
+        upToRemainingQuota:
+          type: boolean
+          default: false
+          description: |-
+            如果为 true，则消息将在可传送消息的最大数量内发送。 默认值为“假”。 
+
+            目标将随机选择。
+        forbidPartialDelivery:
+          type: boolean
+          default: false
+          description: |-
+            此选项可防止消息仅传递给目标受众的子集。 
+            如果为 true，则窄播请求成功但异步失败。 
+            您可以通过检索窄播消息进度来检查消息传送是否被取消。 
+
+            仅当 upToRemainingQuota 设置为 true 时，此属性才能设置为 true。
+    NarrowcastProgressResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-narrowcast-progress-status
+      required:
+        - phase
+        - acceptedTime
+      type: object
+      properties:
+        phase:
+          type: string
+          enum:
+            - waiting
+            - sending
+            - succeeded
+            - failed
+          description: |-
+            目前的状态。 其中之一：
+
+             `waiting`：消息尚未准备好发送。 它们目前正在以某种方式被过滤或处理。 
+            `sending`：当前正在发送消息。 
+            `succeeded`: 消息发送成功。 这可能并不意味着消息已成功接收。 
+            `failed`: 消息发送失败。 使用 failedDescription 属性查找失败的原因。
+        successCount:
+          type: integer
+          format: int64
+          description: 成功接收消息的用户数。
+        failureCount:
+          type: integer
+          format: int64
+          description: 发送消息失败的用户数。
+        targetCount:
+          type: integer
+          format: int64
+          description: 消息的预期收件人数量。
+        failedDescription:
+          type: string
+          description: 消息发送失败的原因。 这仅包含在“phase”属性值为“failed”时。
+        errorCode:
+          type: integer
+          format: int64
+          description: |-
+            错误总结。 这仅包含在失败的阶段属性值中。 
+            其中之一：
+
+             `1`：发生内部错误。 
+            `2`：由于没有足够的收件人而发生错误。 
+            `3`：由于重试已接受的请求，出现请求冲突错误。 
+            `4`：包含少于 50 个收件人的受众作为发送条件。 
+            “5”：消息传递已被取消，以防止消息仅传递给目标受众的子集。
+        acceptedTime:
+          type: string
+          format: date-time
+          description: |-
+            窄播消息请求接受时间（以毫秒为单位）。 
+
+            格式：ISO 8601（例如 2020-12-03T10:15:30.121Z）
+             时区：UTC
+        completedTime:
+          type: string
+          format: date-time
+          description: |-
+            处理窄播消息请求的完成时间（以毫秒为单位）。 当阶段属性成功或失败时返回。 
+
+            格式：ISO 8601（例如 2020-12-03T10:15:30.121Z）
+             时区：UTC
+    BroadcastRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-broadcast-message
+      required:
+        - messages
+      type: object
+      properties:
+        messages:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+          description: 消息对象列表。
+        notificationDisabled:
+          $ref: "#/components/schemas/NotificationDisabled"
+    BroadcastResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#send-broadcast-response
+      type: object
+    MessageQuotaResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-quota
+      required:
+        - type
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/QuotaType"
+        value:
+          type: integer
+          format: int64
+          description: 当月发送消息的目标限制。 当“type”属性的值为“limited”时，返回此属性。
+    QuotaType:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-quota
+      type: string
+      enum:
+        - none
+        - limited
+      description: 以下值之一指示是否设置目标限制。
+    QuotaConsumptionResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-consumption
+      required:
+        - totalUsage
+      type: object
+      properties:
+        totalUsage:
+          type: integer
+          format: int64
+          description: 当月发送消息数
+    NumberOfMessagesResponse:
+      required:
+        - status
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ready
+            - unready
+            - unavailable_for_privacy
+            - out_of_service
+          description: |-
+            聚合进程状态。 其中之一：
+
+             `ready`：可以获取的消息数量。 
+            `unready`：我们尚未完成计算指定日期内发送的消息数。 例如，当指定交货日期或未来日期时，返回此属性。 计算通常需要一天左右的时间。 
+            `unavailable_for_privacy`：指定日期的消息总数小于 20 条。 
+            `out_of_service`：指定的日期早于我们第一次开始计算发送消息的日期（2018 年 3 月 31 日）。
+        success:
+          type: integer
+          format: int64
+          description: |-
+            在“日期”中指定的日期使用电话号码发送的消息数。 
+            仅当“status”的值为“ready”时，响应才具有此属性。
+    ValidateMessageRequest:
+      required:
+        - messages
+      type: object
+      properties:
+        messages:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+          description: 要验证的消息对象数组
+    GetAggregationUnitUsageResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-number-of-units-used-this-month
+      required:
+        - numOfCustomAggregationUnits
+      type: object
+      properties:
+        numOfCustomAggregationUnits:
+          type: integer
+          format: int64
+          description: 本月使用的聚合单元数。
+    GetAggregationUnitNameListResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-name-list-of-units-used-this-month
+      required:
+        - customAggregationUnits
+      type: object
+      properties:
+        customAggregationUnits:
+          type: array
+          items:
+            type: string
+          description: 指示本月使用的聚合单位名称的字符串数组。
+        next:
+          type: string
+          description: |-
+            用于获取下一个单元名称数组的延续标记。 
+            仅当原始请求中的 customAggregationUnits 中未返回剩余聚合单元时才返回。
+    UserProfileResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-profile
+      required:
+        - displayName
+        - userId
+      type: object
+      properties:
+        displayName:
+          type: string
+          description: 用户的显示名称
+        userId:
+          type: string
+          description: 用户身份
+        pictureUrl:
+          type: string
+          format: uri
+          description: 个人资料图像 URL。 `https` 图像 URL。 如果用户没有个人资料图片，则不包含在响应中。
+        statusMessage:
+          type: string
+          description: 用户的状态消息。 如果用户没有状态消息，则不包含在响应中。
+        language:
+          type: string
+          description: 用户的语言，作为 BCP 47 语言标记。 如果用户尚未同意 LINE 隐私政策，则不会包含在响应中。
+          example: en
+    GetFollowersResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-follower-ids
+      required:
+        - userIds
+      type: object
+      properties:
+        userIds:
+          type: array
+          maxItems: 1000
+          description: |-
+            字符串数组，表示已将 LINE 公众号添加为好友的用户的用户 ID。 
+            `userIds` 中仅包含 LINE for iOS 和 LINE for Android 的用户。
+          items:
+            type: string
+        next:
+          type: string
+          description: |-
+            用于获取下一个用户 ID 数组的延续令牌。 
+            仅当原始请求中的“userIds”中存在未返回的剩余用户 ID 时才返回。 
+            对于要包含在响应中的“next”属性，“userIds”元素中的用户 ID 数量不必达到“limit”指定的最大数量。
+    BotInfoResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-bot-info
+      required:
+        - userId
+        - basicId
+        - displayName
+        - chatMode
+        - markAsReadMode
+      type: object
+      properties:
+        userId:
+          type: string
+          description: 机器人的用户 ID
+        basicId:
+          type: string
+          description: 机器人的基本ID
+        premiumId:
+          type: string
+          description: 机器人的高级 ID。 如果未设置高级 ID，则不会包含在响应中。
+        displayName:
+          type: string
+          description: 机器人的显示名称
+        pictureUrl:
+          type: string
+          format: uri
+          description: 个人资料图像 URL。 `https` 图像 URL。 如果机器人没有个人资料图片，则不包含在响应中。
+        chatMode:
+          type: string
+          enum:
+            - chat
+            - bot
+          description: |-
+            在 LINE 官方帐户管理器中设置的聊天设置。 其中之一：
+
+             `chat`：聊天设置为“打开”。 
+            `bot`：聊天设置为“关闭”。
+        markAsReadMode:
+          type: string
+          enum:
+            - auto
+            - manual
+          description: |-
+            消息自动读取设置。 如果聊天设置为“关闭”，则返回自动。 如果聊天设置为“打开”，则返回手册。 
+
+            `auto`：启用自动读取设置。 
+            `manual`：禁用自动读取设置。
+    GroupUserProfileResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-group-member-profile
+      required:
+        - displayName
+        - userId
+      type: object
+      properties:
+        displayName:
+          type: string
+          description: 用户的显示名称
+        userId:
+          type: string
+          description: 用户身份
+        pictureUrl:
+          type: string
+          format: uri
+          description: 个人资料图像 URL。 `https` 图像 URL。 如果用户没有个人资料图片，则不包含在响应中。
+    RoomUserProfileResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-room-member-profile
+      required:
+        - displayName
+        - userId
+      type: object
+      properties:
+        displayName:
+          type: string
+          description: 用户的显示名称
+        userId:
+          type: string
+          description: 用户身份
+        pictureUrl:
+          type: string
+          format: uri
+          description: 个人资料图像 URL。 `https` 图像 URL。 如果用户没有个人资料图片，则不包含在响应中。
+    MembersIdsResponse:
+      required:
+        - memberIds
+      type: object
+      properties:
+        memberIds:
+          type: array
+          description: 群聊成员的用户ID列表。 “memberIds”中仅包含 LINE for iOS 和 LINE for Android 的用户。
+          items:
+            type: string
+          maxItems: 100
+        next:
+          type: string
+          description: |-
+            用于获取群聊中成员的下一个用户 ID 数组的延续令牌。 
+            仅当原始请求的“memberIds”中存在未返回的剩余用户 ID 时才返回。
+    GroupSummaryResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-group-summary
+      required:
+        - groupId
+        - groupName
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: 组号
+        groupName:
+          type: string
+          description: 团体名称
+        pictureUrl:
+          type: string
+          format: uri
+          description: 组图标 URL。 如果用户未设置组配置文件图标，则不包含在响应中。
+    GroupMemberCountResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-members-group-count
+      required:
+        - count
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int32
+          description: 群聊中的成员数量。 返回的数字不包括 LINE 官方帐号。
+    RoomMemberCountResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-members-room-count
+      required:
+        - count
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int32
+          description: 多人聊天的成员数。 返回的数字不包括 LINE 官方帐号。
+    RichMenuRequest:
+      type: object
+      properties:
+        size:
+          $ref: "#/components/schemas/RichMenuSize"
+        selected:
+          type: boolean
+          description: “true”默认显示丰富的菜单。 否则，“假”。
+        name:
+          type: string
+          description: 丰富菜单的名称。 该值可用于帮助管理丰富的菜单，并且不会向用户显示。
+          maxLength: 300
+        chatBarText:
+          type: string
+          description: 聊天栏中显示的文字
+          maxLength: 14
+        areas:
+          type: array
+          description: 定义可点击区域的坐标和大小的区域对象数组
+          items:
+            $ref: "#/components/schemas/RichMenuArea"
+    RichMenuSize:
+      type: object
+      description: 丰富的菜单尺寸
+      properties:
+        width:
+          maximum: 2147483647
+          minimum: 1
+          type: integer
+          format: int64
+          description: 宽度
+        height:
+          maximum: 2147483647
+          minimum: 1
+          type: integer
+          format: int64
+          description: 高度
+    RichMenuArea:
+      type: object
+      description: 丰富的菜单区
+      properties:
+        bounds:
+          $ref: "#/components/schemas/RichMenuBounds"
+        action:
+          $ref: "#/components/schemas/Action"
+    RichMenuBounds:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#bounds-object
+      type: object
+      description: 丰富的菜单范围
+      properties:
+        x:
+          maximum: 2147483647
+          minimum: 0
+          type: integer
+          format: int64
+          description: 相对于区域左上角的水平位置。
+        "y":
+          maximum: 2147483647
+          minimum: 0
+          type: integer
+          format: int64
+          description: 相对于区域左上角的垂直位置。
+        width:
+          maximum: 2147483647
+          minimum: 1
+          type: integer
+          format: int64
+          description: 区域的宽度。
+        height:
+          maximum: 2147483647
+          minimum: 1
+          type: integer
+          format: int64
+          description: 该区域的高度。
+    RichMenuIdResponse:
+      required:
+        - richMenuId
+      type: object
+      properties:
+        richMenuId:
+          type: string
+          description: 丰富的菜单ID
+    RichMenuResponse:
+      required:
+        - richMenuId
+        - size
+        - selected
+        - name
+        - chatBarText
+        - areas
+      type: object
+      properties:
+        richMenuId:
+          type: string
+          description: 丰富菜单ID
+        size:
+          $ref: "#/components/schemas/RichMenuSize"
+        selected:
+          type: boolean
+          description: “true”默认显示丰富的菜单。 否则，“假”。
+        name:
+          type: string
+          description: 丰富菜单的名称。 该值可用于帮助管理丰富的菜单，并且不会向用户显示。
+          maxLength: 300
+        chatBarText:
+          type: string
+          description: 聊天栏中显示的文字
+          maxLength: 14
+        areas:
+          type: array
+          items:
+            $ref: "#/components/schemas/RichMenuArea"
+          description: 定义可点击区域的坐标和大小的区域对象数组
+          maxItems: 20
+    RichMenuListResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-rich-menu-list
+      required:
+        - richmenus
+      type: object
+      properties:
+        richmenus:
+          type: array
+          items:
+            $ref: "#/components/schemas/RichMenuResponse"
+          description: 丰富的菜单
+    CreateRichMenuAliasRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#create-rich-menu-alias
+      required:
+        - richMenuAliasId
+        - richMenuId
+      type: object
+      properties:
+        richMenuAliasId:
+          type: string
+          description: 丰富的菜单别名ID，可以是任意ID，每个频道唯一。
+          maxLength: 32
+          minLength: 1
+          pattern: ^[a-z0-9_-]{1,32}$
+        richMenuId:
+          type: string
+          description: 与丰富菜单别名关联的丰富菜单 ID。
+    RichMenuAliasResponse:
+      required:
+        - richMenuAliasId
+        - richMenuId
+      type: object
+      properties:
+        richMenuAliasId:
+          type: string
+          description: 丰富的菜单别名ID。
+        richMenuId:
+          type: string
+          description: 与丰富菜单别名关联的丰富菜单 ID。
+    UpdateRichMenuAliasRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#update-rich-menu-alias
+      required:
+        - richMenuId
+      type: object
+      properties:
+        richMenuId:
+          type: string
+          description: 与丰富菜单别名关联的丰富菜单 ID。
+    RichMenuAliasListResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-rich-menu-alias-list
+      required:
+        - aliases
+      type: object
+      properties:
+        aliases:
+          type: array
+          items:
+            $ref: "#/components/schemas/RichMenuAliasResponse"
+          description: 丰富的菜单别名。
+    RichMenuBulkLinkRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#link-rich-menu-to-users
+      required:
+        - richMenuId
+        - userIds
+      type: object
+      properties:
+        richMenuId:
+          type: string
+          description: 丰富菜单ID
+        userIds:
+          maxItems: 500
+          minItems: 1
+          type: array
+          items:
+            type: string
+          description: 用户 ID 数组。 在 webhook 事件对象的“source”对象中找到。 请勿使用 LINE 中使用的 LINE ID。
+    RichMenuBulkUnlinkRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#unlink-rich-menu-from-users
+      required:
+        - userIds
+      type: object
+      properties:
+        userIds:
+          maxItems: 500
+          minItems: 1
+          type: array
+          items:
+            type: string
+          description: 用户 ID 数组。 在 webhook 事件对象的“source”对象中找到。 请勿使用 LINE 中使用的 LINE ID。
+    RichMenuBatchRequest:
+      type: object
+      required:
+        - operations
+      properties:
+        operations:
+          type: array
+          items:
+            $ref: "#/components/schemas/RichMenuBatchOperation"
+          description: 丰富的菜单操作对象数组...
+          maxItems: 1000
+        resumeRequestKey:
+          type: string
+          description: 重试键。 键值是与正则表达式模式匹配的字符串
+          maxLength: 100
+          minLength: 1
+          pattern: ^[a-zA-Z0-9_-]{1,100}$
+    RichMenuBatchOperation:
+      description: 丰富菜单操作对象代表对用户链接的丰富菜单的批量操作。
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#batch-control-rich-menus-of-users-operations
+      required:
+        - type
+      type: object
+      properties:
+        type:
+          type: string
+          description: 该类型的操作以丰富的菜单链接到用户。 link、unlink 或 unlinkAll 之一。
+      discriminator:
+        propertyName: type
+        mapping:
+          link: "#/components/schemas/RichMenuBatchLinkOperation"
+          unlink: "#/components/schemas/RichMenuBatchUnlinkOperation"
+          unlinkAll: "#/components/schemas/RichMenuBatchUnlinkAllOperation"
+    RichMenuBatchLinkOperation:
+      description: 对于链接到“from”属性中指定的丰富菜单的所有用户，将丰富菜单替换为“to”属性中指定的丰富菜单。
+      type: object
+      required:
+        - from
+        - to
+      allOf:
+        - $ref: "#/components/schemas/RichMenuBatchOperation"
+        - type: object
+          properties:
+            from:
+              type: string
+            to:
+              type: string
+    RichMenuBatchUnlinkOperation:
+      description: 为链接到“from”属性中指定的丰富菜单的所有用户取消链接丰富菜单。
+      type: object
+      required:
+        - from
+      allOf:
+        - $ref: "#/components/schemas/RichMenuBatchOperation"
+        - type: object
+          properties:
+            from:
+              type: string
+    RichMenuBatchUnlinkAllOperation:
+      description: 取消丰富菜单与链接到丰富菜单的所有用户的链接。
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/RichMenuBatchOperation"
+    RichMenuBatchProgressResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-batch-control-rich-menus-progress-status-response
+      required:
+        - phase
+        - acceptedTime
+      type: object
+      properties:
+        phase:
+          $ref: "#/components/schemas/RichMenuBatchProgressPhase"
+        acceptedTime:
+          type: string
+          format: date-time
+          description: |-
+            批量控制丰富菜单的请求的接受时间（以毫秒为单位）。 
+
+            格式：ISO 8601（例如 2023-06-08T10:15:30.121Z）
+             时区：UTC
+        completedTime:
+          type: string
+          format: date-time
+          description: |-
+            丰富菜单批量控制的完成时间（以毫秒为单位）。 当阶段属性成功或失败时返回。 
+
+            格式：ISO 8601（例如 2023-06-08T10:15:30.121Z）
+             时区：UTC
+    RichMenuBatchProgressPhase:
+      type: string
+      description: |-
+        目前的状态。 其中之一：
+
+         `ongoing`：丰富的菜单批量控制正在进行中。 
+        `成功`：丰富菜单批量控制完成。 
+        `failed`: 丰富菜单批量控制失败。 
+        这意味着无法控制一个或多个用户的丰富菜单。 
+        也可能有用户的操作已成功完成。
+      enum:
+        - ongoing
+        - succeeded
+        - failed
+    IssueLinkTokenResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#issue-link-token
+      required:
+        - linkToken
+      type: object
+      properties:
+        linkToken:
+          type: string
+          description: |-
+            链接令牌。 
+            链接令牌的有效期为 10 分钟，且只能使用一次。
+    MarkMessagesAsReadRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#mark-messages-from-users-as-read
+      required:
+        - chat
+      type: object
+      properties:
+        chat:
+          $ref: "#/components/schemas/ChatReference"
+    ChatReference:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#mark-messages-from-users-as-read
+      required:
+        - userId
+      type: object
+      description: 聊天参考
+      properties:
+        userId:
+          type: string
+          description: 目标用户ID
+    PnpMessagesRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#send-line-notification-message
+      required:
+        - messages
+        - to
+      type: object
+      properties:
+        messages:
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+          description: 待发送的消息。
+        to:
+          type: string
+          description: 消息目的地。 指定已标准化为 E.164 格式并使用 SHA256 进行哈希处理的电话号码。
+        notificationDisabled:
+          $ref: "#/components/schemas/NotificationDisabled"
+    Message:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#message-common-properties
+      required:
+        - type
+      type: object
+      properties:
+        type:
+          type: string
+          description: 消息类型
+        quickReply:
+          $ref: "#/components/schemas/QuickReply"
+        sender:
+          $ref: "#/components/schemas/Sender"
+      discriminator:
+        propertyName: type
+        mapping:
+          text: "#/components/schemas/TextMessage"
+          textV2: "#/components/schemas/TextMessageV2"
+          sticker: "#/components/schemas/StickerMessage"
+          image: "#/components/schemas/ImageMessage"
+          video: "#/components/schemas/VideoMessage"
+          audio: "#/components/schemas/AudioMessage"
+          location: "#/components/schemas/LocationMessage"
+          imagemap: "#/components/schemas/ImagemapMessage"
+          template: "#/components/schemas/TemplateMessage"
+          flex: "#/components/schemas/FlexMessage"
+          coupon: "#/components/schemas/CouponMessage"
+    QuickReply:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#items-object
+      type: object
+      description: 快速回复
+      properties:
+        items:
+          type: array
+          maxItems: 13
+          items:
+            $ref: "#/components/schemas/QuickReplyItem"
+          description: 快速回复按钮对象。
+    QuickReplyItem:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#items-object
+      type: object
+      properties:
+        imageUrl:
+          type: string
+          format: uri
+          description: 显示在按钮开头的图标的 URL
+          maxLength: 2000
+        action:
+          $ref: "#/components/schemas/Action"
+        type:
+          type: string
+          description: "`行动`"
+          default: action
+    Sender:
+      type: object
+      description: 更改图标和显示名称
+      properties:
+        name:
+          type: string
+          description: 显示名称。 不得使用某些词语，例如“LINE”。
+          maxLength: 20
+        iconUrl:
+          type: string
+          format: uri
+          description: 发送消息时显示为图标的图像的 URL
+          maxLength: 2000
+    TextMessage:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#text-message
+      type: object
+      required:
+        - text
+      allOf:
+        - $ref: "#/components/schemas/Message"
+        - type: object
+          properties:
+            text:
+              type: string
+            emojis:
+              type: array
+              items:
+                $ref: "#/components/schemas/Emoji"
+            quoteToken:
+              type: string
+              description: 您要引用的消息的引用标记。
+    Emoji:
+      type: object
+      properties:
+        index:
+          type: integer
+          format: int32
+        productId:
+          type: string
+        emojiId:
+          type: string
+    TextMessageV2:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#text-message-v2
+      type: object
+      required:
+        - text
+      allOf:
+        - $ref: "#/components/schemas/Message"
+        - type: object
+          properties:
+            text:
+              type: string
+            substitution:
+              type: object
+              additionalProperties:
+                $ref: "#/components/schemas/SubstitutionObject"
+              description: 指定“text”字段中 {} 中包含的部分的替换的映射。
+            quoteToken:
+              type: string
+              description: 您要引用的消息的引用标记。
+    SubstitutionObject:
+      description: 定义文本中占位符的替换值的对象。
+      type: object
+      properties:
+        type:
+          description: 替换对象的类型
+          type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          mention: "#/components/schemas/MentionSubstitutionObject"
+          emoji: "#/components/schemas/EmojiSubstitutionObject"
+      required:
+        - type
+    MentionSubstitutionObject:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#text-message-v2-mention-object
+      description: 代表提及替换的对象。
+      allOf:
+        - $ref: "#/components/schemas/SubstitutionObject"
+        - type: object
+          properties:
+            mentionee:
+              $ref: "#/components/schemas/MentionTarget"
+          required:
+            - mentionee
+    MentionTarget:
+      type: object
+      properties:
+        type:
+          description: 待提及的目标
+          type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          user: "#/components/schemas/UserMentionTarget"
+          all: "#/components/schemas/AllMentionTarget"
+      required:
+        - type
+    UserMentionTarget:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#text-message-v2-mentionee-user
+      allOf:
+        - $ref: "#/components/schemas/MentionTarget"
+        - type: object
+          properties:
+            userId:
+              type: string
+          required:
+            - userId
+    AllMentionTarget:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#text-message-v2-mentionee-all
+      allOf:
+        - $ref: "#/components/schemas/MentionTarget"
+    EmojiSubstitutionObject:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#text-message-v2-emoji-object
+      description: 代表表情符号替换的对象。
+      allOf:
+        - $ref: "#/components/schemas/SubstitutionObject"
+        - type: object
+          properties:
+            productId:
+              type: string
+            emojiId:
+              type: string
+          required:
+            - productId
+            - emojiId
+    StickerMessage:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#sticker-message
+      type: object
+      required:
+        - packageId
+        - stickerId
+      allOf:
+        - $ref: "#/components/schemas/Message"
+        - type: object
+          properties:
+            packageId:
+              type: string
+            stickerId:
+              type: string
+            quoteToken:
+              type: string
+              description: 您要引用的消息的引用标记。
+    ImageMessage:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#image-message
+      required:
+        - originalContentUrl
+        - previewImageUrl
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Message"
+        - type: object
+          properties:
+            originalContentUrl:
+              type: string
+              format: uri
+            previewImageUrl:
+              type: string
+              format: uri
+    VideoMessage:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#video-message
+      type: object
+      required:
+        - originalContentUrl
+        - previewImageUrl
+      allOf:
+        - $ref: "#/components/schemas/Message"
+        - type: object
+          properties:
+            originalContentUrl:
+              type: string
+              format: uri
+            previewImageUrl:
+              type: string
+              format: uri
+            trackingId:
+              type: string
+    AudioMessage:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#audio-message
+      type: object
+      required:
+        - originalContentUrl
+        - duration
+      allOf:
+        - $ref: "#/components/schemas/Message"
+        - type: object
+          properties:
+            originalContentUrl:
+              type: string
+              format: uri
+            duration:
+              type: integer
+              format: int64
+    LocationMessage:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#location-message
+      required:
+        - title
+        - address
+        - latitude
+        - longitude
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Message"
+        - type: object
+          properties:
+            title:
+              type: string
+            address:
+              type: string
+            latitude:
+              type: number
+              format: double
+            longitude:
+              type: number
+              format: double
+    ImagemapMessage:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#imagemap-message
+      type: object
+      required:
+        - baseUrl
+        - altText
+        - baseSize
+        - actions
+      allOf:
+        - $ref: "#/components/schemas/Message"
+        - type: object
+          properties:
+            baseUrl:
+              type: string
+              format: uri
+            altText:
+              type: string
+            baseSize:
+              $ref: "#/components/schemas/ImagemapBaseSize"
+            actions:
+              type: array
+              items:
+                $ref: "#/components/schemas/ImagemapAction"
+            video:
+              $ref: "#/components/schemas/ImagemapVideo"
+    ImagemapBaseSize:
+      type: object
+      required:
+        - width
+        - height
+      properties:
+        height:
+          type: integer
+          format: int32
+        width:
+          type: integer
+          format: int32
+    ImagemapAction:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#imagemap-action-objects
+      required:
+        - type
+        - area
+      type: object
+      properties:
+        type:
+          type: string
+        area:
+          $ref: "#/components/schemas/ImagemapArea"
+      discriminator:
+        propertyName: type
+        mapping:
+          message: "#/components/schemas/MessageImagemapAction"
+          uri: "#/components/schemas/URIImagemapAction"
+          clipboard: "#/components/schemas/ClipboardImagemapAction"
+    MessageImagemapAction:
+      type: object
+      required:
+        - text
+      allOf:
+        - $ref: "#/components/schemas/ImagemapAction"
+        - type: object
+          properties:
+            text:
+              type: string
+            label:
+              type: string
+    URIImagemapAction:
+      type: object
+      required:
+        - linkUri
+      allOf:
+        - $ref: "#/components/schemas/ImagemapAction"
+        - type: object
+          properties:
+            linkUri:
+              type: string
+            label:
+              type: string
+    ClipboardImagemapAction:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#imagemap-clipboard-action-object
+      type: object
+      required:
+        - clipboardText
+      allOf:
+        - $ref: "#/components/schemas/ImagemapAction"
+        - type: object
+          properties:
+            clipboardText:
+              description: |-
+                复制到剪贴板的文本。 
+                最大字符数限制：1000
+              maxLength: 1000
+              minLength: 1
+              type: string
+            label:
+              type: string
+    ImagemapArea:
+      type: object
+      required:
+        - x
+        - "y"
+        - width
+        - height
+      properties:
+        x:
+          type: integer
+          format: int32
+        "y":
+          type: integer
+          format: int32
+        width:
+          type: integer
+          format: int32
+        height:
+          type: integer
+          format: int32
+    ImagemapVideo:
+      type: object
+      properties:
+        originalContentUrl:
+          type: string
+          format: uri
+        previewImageUrl:
+          type: string
+          format: uri
+        area:
+          $ref: "#/components/schemas/ImagemapArea"
+        externalLink:
+          $ref: "#/components/schemas/ImagemapExternalLink"
+    ImagemapExternalLink:
+      type: object
+      properties:
+        linkUri:
+          type: string
+          format: uri
+        label:
+          type: string
+    TemplateMessage:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#template-messages
+      type: object
+      required:
+        - altText
+        - template
+      allOf:
+        - $ref: "#/components/schemas/Message"
+        - type: object
+          properties:
+            altText:
+              type: string
+            template:
+              $ref: "#/components/schemas/Template"
+    Template:
+      required:
+        - type
+      type: object
+      properties:
+        type:
+          type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          buttons: "#/components/schemas/ButtonsTemplate"
+          confirm: "#/components/schemas/ConfirmTemplate"
+          carousel: "#/components/schemas/CarouselTemplate"
+          image_carousel: "#/components/schemas/ImageCarouselTemplate"
+    ButtonsTemplate:
+      type: object
+      required:
+        - text
+        - actions
+      allOf:
+        - $ref: "#/components/schemas/Template"
+        - type: object
+          properties:
+            thumbnailImageUrl:
+              type: string
+              format: uri
+            imageAspectRatio:
+              type: string
+            imageSize:
+              type: string
+            imageBackgroundColor:
+              type: string
+            title:
+              type: string
+            text:
+              type: string
+            defaultAction:
+              $ref: "#/components/schemas/Action"
+            actions:
+              type: array
+              items:
+                $ref: "#/components/schemas/Action"
+    TemplateImageAspectRatio:
+      type: string
+      description: |-
+        图像的长宽比。 这仅适用于 ButtonsTemplate 中的“imageAspectRatio”。 
+        指定以下值之一：
+
+         `矩形`：1.51:1
+         “正方形”：1:1
+      enum:
+        - rectangle
+        - square
+    TemplateImageSize:
+      type: string
+      description: |-
+        图像的大小。 这仅适用于 ButtonsTemplate 中的“imageSize”。 
+        指定以下值之一：
+
+         `cover`：图像填充整个图像区域。 不适合该区域的图像部分不会显示。 
+        `contain`：整个图像显示在图像区域中。 背景显示在垂直图像左侧和右侧的未使用区域以及水平图像上方和下方的区域中。
+      enum:
+        - cover
+        - contain
+    ConfirmTemplate:
+      type: object
+      required:
+        - text
+        - actions
+      allOf:
+        - $ref: "#/components/schemas/Template"
+        - type: object
+          properties:
+            text:
+              type: string
+            actions:
+              type: array
+              items:
+                $ref: "#/components/schemas/Action"
+    CarouselTemplate:
+      type: object
+      required:
+        - columns
+      allOf:
+        - $ref: "#/components/schemas/Template"
+        - type: object
+          properties:
+            columns:
+              type: array
+              items:
+                $ref: "#/components/schemas/CarouselColumn"
+            imageAspectRatio:
+              type: string
+            imageSize:
+              type: string
+    CarouselColumn:
+      description: 轮播模板的列对象。
+      type: object
+      required:
+        - text
+        - actions
+      properties:
+        thumbnailImageUrl:
+          type: string
+          format: uri
+        imageBackgroundColor:
+          type: string
+        title:
+          type: string
+        text:
+          type: string
+        defaultAction:
+          $ref: "#/components/schemas/Action"
+        actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Action"
+    ImageCarouselTemplate:
+      type: object
+      required:
+        - columns
+      allOf:
+        - $ref: "#/components/schemas/Template"
+        - type: object
+          properties:
+            columns:
+              type: array
+              items:
+                $ref: "#/components/schemas/ImageCarouselColumn"
+    ImageCarouselColumn:
+      type: object
+      required:
+        - imageUrl
+        - action
+      properties:
+        imageUrl:
+          type: string
+          format: uri
+        action:
+          $ref: "#/components/schemas/Action"
+    CouponMessage:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#coupon-message
+      required:
+        - couponId
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Message"
+        - type: object
+          properties:
+            couponId:
+              type: string
+              description: 优惠券的唯一标识符。
+            deliveryTag:
+              type: string
+              maxLength: 30
+              description: 配送路线标签信息。 可用于LINE OA Manager中的分析。
+    FlexMessage:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#flex-message
+      type: object
+      required:
+        - altText
+        - contents
+      allOf:
+        - $ref: "#/components/schemas/Message"
+        - type: object
+          properties:
+            altText:
+              type: string
+            contents:
+              $ref: "#/components/schemas/FlexContainer"
+    FlexContainer:
+      required:
+        - type
+      type: object
+      properties:
+        type:
+          type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          bubble: "#/components/schemas/FlexBubble"
+          carousel: "#/components/schemas/FlexCarousel"
+    FlexBubble:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/FlexContainer"
+        - type: object
+          properties:
+            direction:
+              type: string
+              enum:
+                - ltr
+                - rtl
+            styles:
+              $ref: "#/components/schemas/FlexBubbleStyles"
+            header:
+              $ref: "#/components/schemas/FlexBox"
+            hero:
+              $ref: "#/components/schemas/FlexComponent"
+            body:
+              $ref: "#/components/schemas/FlexBox"
+            footer:
+              $ref: "#/components/schemas/FlexBox"
+            size:
+              type: string
+              enum:
+                - nano
+                - micro
+                - deca
+                - hecto
+                - kilo
+                - mega
+                - giga
+            action:
+              $ref: "#/components/schemas/Action"
+    FlexCarousel:
+      type: object
+      required:
+        - contents
+      allOf:
+        - $ref: "#/components/schemas/FlexContainer"
+        - type: object
+          properties:
+            contents:
+              type: array
+              items:
+                $ref: "#/components/schemas/FlexBubble"
+    FlexBubbleStyles:
+      type: object
+      properties:
+        header:
+          $ref: "#/components/schemas/FlexBlockStyle"
+        hero:
+          $ref: "#/components/schemas/FlexBlockStyle"
+        body:
+          $ref: "#/components/schemas/FlexBlockStyle"
+        footer:
+          $ref: "#/components/schemas/FlexBlockStyle"
+    FlexBlockStyle:
+      type: object
+      properties:
+        backgroundColor:
+          type: string
+        separator:
+          type: boolean
+        separatorColor:
+          type: string
+    FlexComponent:
+      required:
+        - type
+      type: object
+      properties:
+        type:
+          type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          box: "#/components/schemas/FlexBox"
+          button: "#/components/schemas/FlexButton"
+          image: "#/components/schemas/FlexImage"
+          video: "#/components/schemas/FlexVideo"
+          icon: "#/components/schemas/FlexIcon"
+          text: "#/components/schemas/FlexText"
+          span: "#/components/schemas/FlexSpan"
+          separator: "#/components/schemas/FlexSeparator"
+          filler: "#/components/schemas/FlexFiller"
+    FlexBox:
+      type: object
+      required:
+        - layout
+        - contents
+      allOf:
+        - $ref: "#/components/schemas/FlexComponent"
+        - properties:
+            layout:
+              type: string
+              enum:
+                - horizontal
+                - vertical
+                - baseline
+            flex:
+              type: integer
+              format: int32
+            contents:
+              type: array
+              items:
+                $ref: "#/components/schemas/FlexComponent"
+            spacing:
+              type: string
+            margin:
+              type: string
+            position:
+              type: string
+              enum:
+                - relative
+                - absolute
+            offsetTop:
+              type: string
+            offsetBottom:
+              type: string
+            offsetStart:
+              type: string
+            offsetEnd:
+              type: string
+            backgroundColor:
+              type: string
+            borderColor:
+              type: string
+            borderWidth:
+              type: string
+            cornerRadius:
+              type: string
+            width:
+              type: string
+            maxWidth:
+              type: string
+            height:
+              type: string
+            maxHeight:
+              type: string
+            paddingAll:
+              type: string
+            paddingTop:
+              type: string
+            paddingBottom:
+              type: string
+            paddingStart:
+              type: string
+            paddingEnd:
+              type: string
+            action:
+              $ref: "#/components/schemas/Action"
+            justifyContent:
+              type: string
+              enum:
+                - center
+                - flex-start
+                - flex-end
+                - space-between
+                - space-around
+                - space-evenly
+            alignItems:
+              type: string
+              enum:
+                - center
+                - flex-start
+                - flex-end
+            background:
+              $ref: "#/components/schemas/FlexBoxBackground"
+    FlexBoxBorderWidth:
+      type: string
+      description: |-
+        框边框的宽度。 这仅适用于 FlexBox 中的“borderWidth”。 
+        none 值表示不渲染边框； 其他值按宽度增加的顺序列出。
+      enum:
+        - none
+        - light
+        - normal
+        - medium
+        - semi-bold
+        - bold
+    FlexBoxCornerRadius:
+      type: string
+      description: |-
+        盒子拐角处的圆角半径。 这仅适用于 FlexBox 中的“cornerRadius”。 
+        none 值表示角不是圆角； 其他值按半径递增的顺序列出。
+      enum:
+        - none
+        - xs
+        - sm
+        - md
+        - lg
+        - xl
+        - xxl
+    FlexBoxSpacing:
+      type: string
+      description: |-
+        您可以使用父框组件的“spacing”属性（以像素为单位）或使用关键字指定两个组件之间的最小间距。 
+        FlexBoxSpacing 仅提供关键字。
+      enum:
+        - none
+        - xs
+        - sm
+        - md
+        - lg
+        - xl
+        - xxl
+    FlexMargin:
+      type: string
+      description: |-
+        您可以使用子组件的“margin”属性（以像素为单位）或使用关键字指定子组件之前的最小空间。 
+        FlexMargin 仅提供关键字。
+      enum:
+        - none
+        - xs
+        - sm
+        - md
+        - lg
+        - xl
+        - xxl
+    FlexBoxPadding:
+      type: string
+      description: |-
+        填充可以用像素、百分比（相对于父框宽度）或关键字来指定。 
+        FlexBoxPadding 仅提供关键字。
+      enum:
+        - none
+        - xs
+        - sm
+        - md
+        - lg
+        - xl
+        - xxl
+    FlexImageSize:
+      type: string
+      description: |-
+        您可以使用“size”属性（以像素为单位、百分比或关键字）设置 Flex 图像组件的宽度。 
+        FlexImageSize 仅提供关键字。
+      enum:
+        - xxs
+        - xs
+        - sm
+        - md
+        - lg
+        - xl
+        - xxl
+        - 3xl
+        - 4xl
+        - 5xl
+        - full
+    FlexIconSize:
+      type: string
+      description: |-
+        您可以使用“size”属性（以像素为单位、百分比或关键字）设置 Flex 图标组件的宽度。 
+        FlexIconSize 仅提供关键字。
+      enum:
+        - xxs
+        - xs
+        - sm
+        - md
+        - lg
+        - xl
+        - xxl
+        - 3xl
+        - 4xl
+        - 5xl
+    FlexTextFontSize:
+      type: string
+      description: |-
+        Flex 文本组件的“size”属性中的字体大小。 
+        您可以以像素为单位或使用关键字指定大小。 
+        FlexTextFontSize 仅提供关键字。
+      enum:
+        - xxs
+        - xs
+        - sm
+        - md
+        - lg
+        - xl
+        - xxl
+        - 3xl
+        - 4xl
+        - 5xl
+    FlexSpanSize:
+      type: string
+      description: |-
+        Flex span 组件的“size”属性中的字体大小。 
+        您可以以像素为单位或使用关键字指定大小。 
+        FlexSpanSize 仅提供关键字。
+      enum:
+        - xxs
+        - xs
+        - sm
+        - md
+        - lg
+        - xl
+        - xxl
+        - 3xl
+        - 4xl
+        - 5xl
+    FlexOffset:
+      type: string
+      description: |-
+        您可以使用“offset*”属性（以像素为单位）或使用关键字指定组件的偏移量。 
+        您还可以为“offsetStart”和“offsetEnd”指定框宽度的百分比，以及为“offsetTop”和“offsetBottom”指定框高度的百分比。 
+        FlexOffset 仅提供关键字。
+      enum:
+        - none
+        - xs
+        - sm
+        - md
+        - lg
+        - xl
+        - xxl
+    FlexButton:
+      type: object
+      required:
+        - action
+      allOf:
+        - $ref: "#/components/schemas/FlexComponent"
+        - type: object
+          properties:
+            flex:
+              type: integer
+              format: int32
+            color:
+              type: string
+            style:
+              type: string
+              enum:
+                - primary
+                - secondary
+                - link
+            action:
+              $ref: "#/components/schemas/Action"
+            gravity:
+              type: string
+              enum:
+                - top
+                - bottom
+                - center
+            margin:
+              type: string
+            position:
+              type: string
+              enum:
+                - relative
+                - absolute
+            offsetTop:
+              type: string
+            offsetBottom:
+              type: string
+            offsetStart:
+              type: string
+            offsetEnd:
+              type: string
+            height:
+              type: string
+              enum:
+                - md
+                - sm
+            adjustMode:
+              type: string
+              enum:
+                - shrink-to-fit
+            scaling:
+              type: boolean
+    FlexImage:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#f-image
+      type: object
+      required:
+        - type
+        - url
+      allOf:
+        - $ref: "#/components/schemas/FlexComponent"
+        - type: object
+          properties:
+            url:
+              type: string
+              format: uri
+              description: |-
+                图片 URL（最大字符数限制：2000）
+                 协议：HTTPS（TLS 1.2 或更高版本）
+                 图片格式：JPEG 或 PNG
+                 最大图像尺寸：1024×1024像素
+                 最大文件大小：10 MB（动画属性为 true 时为 300 KB）
+            flex:
+              type: integer
+              format: int32
+              description: 该组件在父框内的宽度或高度的比率。
+            margin:
+              type: string
+              description: 在其父容器中该组件之前包含的最小空间量。
+            position:
+              type: string
+              enum:
+                - relative
+                - absolute
+              description: |-
+                offsetTop、offsetBottom、offsetStart 和 offsetEnd 的参考。 指定以下值之一：
+
+                 `relative`：使用前一个框作为参考。 
+                `absolute`：使用父元素的左上角作为参考。 默认值是相对的。
+            offsetTop:
+              type: string
+              description: 抵消。
+            offsetBottom:
+              type: string
+              description: 抵消。
+            offsetStart:
+              type: string
+              description: 抵消。
+            offsetEnd:
+              type: string
+              description: 抵消。
+            align:
+              type: string
+              enum:
+                - start
+                - end
+                - center
+              description: 水平方向的对齐方式。
+            gravity:
+              type: string
+              enum:
+                - top
+                - bottom
+                - center
+              description: 垂直方向的对齐方式。
+            size:
+              type: string
+              default: md
+              description: 最大图像宽度。 默认情况下这是 md。
+            aspectRatio:
+              type: string
+              description: |-
+                图像的长宽比。 
+                `{宽度}:{高度}` 格式。 
+                在“1”到“100000”范围内指定“{width}”和“{height}”的值。 
+                但是，您不能将“{height}”设置为超过“{width}”值三倍的值。 
+                默认值为“1:1”。
+            aspectMode:
+              type: string
+              enum:
+                - fit
+                - cover
+              description: 如果图像的宽高比与aspectRatio属性指定的宽高比不匹配，则图像的显示样式。
+            backgroundColor:
+              type: string
+              description: 图像的背景颜色。 使用十六进制颜色代码。
+            action:
+              $ref: "#/components/schemas/Action"
+            animated:
+              type: boolean
+              default: false
+              description: |-
+                当此值为“true”时，将播放动画图像 (APNG)。 
+                您可以在一条消息中指定最多 10 个图像的 true 值。
+                 您无法发送超过此限制的消息。 
+                默认情况下这是“假”。 
+                Animated images larger than 300 KB aren't played back.
+    FlexVideo:
+      type: object
+      required:
+        - url
+        - previewUrl
+        - altContent
+      allOf:
+        - $ref: "#/components/schemas/FlexComponent"
+        - type: object
+          properties:
+            url:
+              type: string
+              format: uri
+            previewUrl:
+              type: string
+              format: uri
+            altContent:
+              $ref: "#/components/schemas/FlexComponent"
+            aspectRatio:
+              type: string
+            action:
+              $ref: "#/components/schemas/Action"
+    FlexIcon:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#icon
+      type: object
+      required:
+        - url
+      allOf:
+        - $ref: "#/components/schemas/FlexComponent"
+        - type: object
+          properties:
+            url:
+              type: string
+              format: uri
+            size:
+              type: string
+            aspectRatio:
+              type: string
+            margin:
+              type: string
+            position:
+              type: string
+              enum:
+                - relative
+                - absolute
+            offsetTop:
+              type: string
+            offsetBottom:
+              type: string
+            offsetStart:
+              type: string
+            offsetEnd:
+              type: string
+            scaling:
+              type: boolean
+    FlexText:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/FlexComponent"
+        - type: object
+          properties:
+            flex:
+              type: integer
+              format: int32
+            text:
+              type: string
+            size:
+              type: string
+            align:
+              type: string
+              enum:
+                - start
+                - end
+                - center
+            gravity:
+              type: string
+              enum:
+                - top
+                - bottom
+                - center
+            color:
+              type: string
+            weight:
+              type: string
+              enum:
+                - regular
+                - bold
+            style:
+              type: string
+              enum:
+                - normal
+                - italic
+            decoration:
+              type: string
+              enum:
+                - none
+                - underline
+                - line-through
+            wrap:
+              type: boolean
+            lineSpacing:
+              type: string
+            margin:
+              type: string
+            position:
+              type: string
+              enum:
+                - relative
+                - absolute
+            offsetTop:
+              type: string
+            offsetBottom:
+              type: string
+            offsetStart:
+              type: string
+            offsetEnd:
+              type: string
+            action:
+              $ref: "#/components/schemas/Action"
+            maxLines:
+              type: integer
+              format: int32
+            contents:
+              type: array
+              items:
+                $ref: "#/components/schemas/FlexSpan"
+            adjustMode:
+              type: string
+              enum:
+                - shrink-to-fit
+            scaling:
+              type: boolean
+    FlexSpan:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/FlexComponent"
+        - type: object
+          properties:
+            text:
+              type: string
+            size:
+              type: string
+            color:
+              type: string
+            weight:
+              type: string
+              enum:
+                - regular
+                - bold
+            style:
+              type: string
+              enum:
+                - normal
+                - italic
+            decoration:
+              type: string
+              enum:
+                - none
+                - underline
+                - line-through
+    FlexSeparator:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/FlexComponent"
+        - type: object
+          properties:
+            margin:
+              type: string
+            color:
+              type: string
+    FlexFiller:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/FlexComponent"
+        - type: object
+          properties:
+            flex:
+              type: integer
+              format: int32
+    FlexBoxBackground:
+      required:
+        - type
+      type: object
+      properties:
+        type:
+          type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          linearGradient: "#/components/schemas/FlexBoxLinearGradient"
+    FlexBoxLinearGradient:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/FlexBoxBackground"
+        - type: object
+          properties:
+            angle:
+              type: string
+            startColor:
+              type: string
+            endColor:
+              type: string
+            centerColor:
+              type: string
+            centerPosition:
+              type: string
+    Action:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#action-objects
+      description: 行动
+      type: object
+      properties:
+        type:
+          type: string
+          description: 动作类型
+        label:
+          type: string
+          description: 操作的标签。
+      discriminator:
+        propertyName: type
+        mapping:
+          camera: "#/components/schemas/CameraAction"
+          cameraRoll: "#/components/schemas/CameraRollAction"
+          clipboard: "#/components/schemas/ClipboardAction"
+          datetimepicker: "#/components/schemas/DatetimePickerAction"
+          location: "#/components/schemas/LocationAction"
+          message: "#/components/schemas/MessageAction"
+          postback: "#/components/schemas/PostbackAction"
+          richmenuswitch: "#/components/schemas/RichMenuSwitchAction"
+          uri: "#/components/schemas/URIAction"
+    CameraAction:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Action"
+    CameraRollAction:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Action"
+    ClipboardAction:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#clipboard-action
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Action"
+        - type: object
+          required:
+            - clipboardText
+          properties:
+            clipboardText:
+              description: |-
+                复制到剪贴板的文本。 
+                最大字符数限制：1000
+              maxLength: 1000
+              minLength: 1
+              type: string
+    DatetimePickerAction:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#datetime-picker-action
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Action"
+        - type: object
+          properties:
+            data:
+              maxLength: 300
+              minLength: 0
+              type: string
+            mode:
+              type: string
+              enum:
+                - date
+                - time
+                - datetime
+            initial:
+              type: string
+            max:
+              type: string
+            min:
+              type: string
+    LocationAction:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Action"
+    MessageAction:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Action"
+        - type: object
+          properties:
+            text:
+              type: string
+    PostbackAction:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Action"
+        - type: object
+          properties:
+            data:
+              maxLength: 300
+              minLength: 0
+              type: string
+            displayText:
+              type: string
+            text:
+              type: string
+            inputOption:
+              type: string
+              enum:
+                - closeRichMenu
+                - openRichMenu
+                - openKeyboard
+                - openVoice
+            fillInText:
+              type: string
+    RichMenuSwitchAction:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Action"
+        - type: object
+          properties:
+            data:
+              maxLength: 300
+              minLength: 0
+              type: string
+            richMenuAliasId:
+              maxLength: 32
+              minLength: 0
+              type: string
+    URIAction:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Action"
+        - type: object
+          properties:
+            uri:
+              type: string
+              format: uri
+            altUri:
+              $ref: "#/components/schemas/AltUri"
+    AltUri:
+      type: object
+      properties:
+        desktop:
+          maxLength: 1000
+          minLength: 0
+          type: string
+    GetMembershipSubscriptionResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-a-users-membership-subscription-status
+      description: 用户的会员订阅状态
+      required:
+        - subscriptions
+      type: object
+      properties:
+        subscriptions:
+          type: array
+          minItems: 0
+          description: 订阅信息列表
+          items:
+            $ref: "#/components/schemas/Subscription"
+    MembershipListResponse:
+      description: 会员名单
+      required:
+        - memberships
+      type: object
+      properties:
+        memberships:
+          type: array
+          minItems: 0
+          description: 会员信息一览
+          items:
+            $ref: "#/components/schemas/Membership"
+    GetJoinedMembershipUsersResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-membership-user-ids
+      description: 已加入会员的用户列表
+      required:
+        - userIds
+      type: object
+      properties:
+        userIds:
+          type: array
+          maxItems: 1000
+          description: |-
+            A list of user IDs who joined the membership.
+             未同意机器人用户协议、未关注机器人或不活跃的用户将被排除。 
+            如果成员资格中没有用户，则将返回空列表。
+          items:
+            type: string
+        next:
+          type: string
+          description: |-
+            用于获取下一个剩余成员资格用户 ID 的继续令牌。 
+            仅当上次请求的 userIds 属性中存在未返回的剩余用户 ID 时才返回。 
+            延续令牌将在 24 小时（86,400 秒）后过期。
+    Subscription:
+      description: 一系列的会员资格。
+      required:
+        - membership
+        - user
+      type: object
+      properties:
+        membership:
+          $ref: "#/components/schemas/SubscribedMembershipPlan"
+        user:
+          $ref: "#/components/schemas/SubscribedMembershipUser"
+    SubscribedMembershipPlan:
+      description: 包含有关会员计划信息的对象。
+      type: object
+      required:
+        - membershipId
+        - title
+        - description
+        - benefits
+        - price
+        - currency
+      properties:
+        membershipId:
+          type: integer
+          description: 会员计划 ID。
+        title:
+          type: string
+          description: 会员计划名称。
+        description:
+          type: string
+          description: 会员计划说明。
+        benefits:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: 会员计划福利列表。
+        price:
+          type: number
+          format: double
+          example: 500
+          description: 会员计划的月费。 （例如 1500.00）
+        currency:
+          type: string
+          description: 会员价格的货币。
+          enum:
+            - JPY
+            - TWD
+            - THB
+    SubscribedMembershipUser:
+      description: 包含用户会员订阅信息的对象。
+      type: object
+      required:
+        - membershipNo
+        - joinedTime
+        - nextBillingDate
+        - totalSubscriptionMonths
+      properties:
+        membershipNo:
+          type: integer
+          description: 用户在会员计划中的会员号。
+        joinedTime:
+          type: integer
+          description: 用户订阅成员资格的 UNIX 时间戳。
+        nextBillingDate:
+          type: string
+          description: |-
+            会员计划的下一个付款日期。
+             - 格式：yyyy-MM-dd（例如 2024-02-08）
+             - 时区：UTC+9
+        totalSubscriptionMonths:
+          type: integer
+          description: 用户订阅会员计划的时间段（以月为单位）。 如果用户之前取消并重新订阅同一会员计划，则仅计算重新订阅后的时间段。
+    Membership:
+      required:
+        - membershipId
+        - title
+        - description
+        - benefits
+        - price
+        - currency
+        - memberCount
+        - memberLimit
+        - isInAppPurchase
+        - isPublished
+      type: object
+      properties:
+        membershipId:
+          type: integer
+          description: 会员计划 ID。
+        title:
+          type: string
+          description: 会员计划名称。
+        description:
+          type: string
+          description: 会员计划说明。
+        benefits:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: 会员计划福利列表。
+        price:
+          type: number
+          format: double
+          example: 500
+          description: 会员计划的月费。 （例如 1500.00）
+        currency:
+          type: string
+          description: 会员价格的货币。
+          enum:
+            - JPY
+            - TWD
+            - THB
+        memberCount:
+          type: integer
+          example: 100
+          description: 订阅会员计划的会员数量。
+        memberLimit:
+          type: integer
+          nullable: true
+          example: 1000
+          description: 可以订阅的会员上限。 如果没有设置上限，则为空。
+        isInAppPurchase:
+          type: boolean
+          description: 订阅会员计划的用户的付款方式。
+        isPublished:
+          type: boolean
+          description: 会员计划状态。
+    CouponCreateRequest:
+      description: 创建优惠券的请求对象。 包含所有可配置的优惠券属性。
+      required:
+        - acquisitionCondition
+        - endTimestamp
+        - maxUseCountPerTicket
+        - startTimestamp
+        - title
+        - visibility
+        - timezone
+      type: object
+      properties:
+        acquisitionCondition:
+          $ref: "#/components/schemas/AcquisitionConditionRequest"
+        barcodeImageUrl:
+          type: string
+          description: 与优惠券关联的条形码图像的 URL。 用于店内兑换。
+        couponCode:
+          type: string
+          description: 用户兑换优惠券时需出示的唯一代码。 选修的。
+        description:
+          maxLength: 1000
+          minLength: 0
+          type: string
+          description: 优惠券的详细说明。 显示给用户。
+        endTimestamp:
+          type: integer
+          format: int64
+          description: 优惠券过期时间（纪元秒）。 在此时间之后优惠券将无法使用。
+        imageUrl:
+          type: string
+          description: 代表优惠券的主图像的 URL。 显示在优惠券列表中。
+        maxUseCountPerTicket:
+          type: integer
+          format: int32
+          maximum: 1
+          description: 单张优惠券的最大使用次数。 使用-1表示没有限制。
+        startTimestamp:
+          type: integer
+          format: int64
+          description: 优惠券开始时间（纪元秒）。 从这个时候开始就可以使用优惠券了。
+        title:
+          maxLength: 60
+          minLength: 1
+          type: string
+          description: 优惠券的标题。 显示在优惠券列表中。
+        usageCondition:
+          maxLength: 100
+          minLength: 0
+          type: string
+          description: 使用优惠券的条件。 展示给用户。
+        reward:
+          $ref: "#/components/schemas/CouponRewardRequest"
+        visibility:
+          type: string
+          description: 优惠券的可见性。 确定谁可以看到或获取优惠券。
+          enum:
+            - UNLISTED
+            - PUBLIC
+        timezone:
+          type: string
+          description: 用于解释开始和结束时间戳的时区。
+          enum:
+            - ETC_GMT_MINUS_12
+            - ETC_GMT_MINUS_11
+            - PACIFIC_HONOLULU
+            - AMERICA_ANCHORAGE
+            - AMERICA_LOS_ANGELES
+            - AMERICA_PHOENIX
+            - AMERICA_CHICAGO
+            - AMERICA_NEW_YORK
+            - AMERICA_CARACAS
+            - AMERICA_SANTIAGO
+            - AMERICA_ST_JOHNS
+            - AMERICA_SAO_PAULO
+            - ETC_GMT_MINUS_2
+            - ATLANTIC_CAPE_VERDE
+            - EUROPE_LONDON
+            - EUROPE_PARIS
+            - EUROPE_ISTANBUL
+            - EUROPE_MOSCOW
+            - ASIA_TEHRAN
+            - ASIA_TBILISI
+            - ASIA_KABUL
+            - ASIA_TASHKENT
+            - ASIA_COLOMBO
+            - ASIA_KATHMANDU
+            - ASIA_ALMATY
+            - ASIA_RANGOON
+            - ASIA_BANGKOK
+            - ASIA_TAIPEI
+            - ASIA_TOKYO
+            - AUSTRALIA_DARWIN
+            - AUSTRALIA_SYDNEY
+            - ASIA_VLADIVOSTOK
+            - ETC_GMT_PLUS_12
+            - PACIFIC_TONGATAPU
+    AcquisitionConditionRequest:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: 确定优惠券的分发或使用方式。
+      discriminator:
+        propertyName: type
+        mapping:
+          normal: "#/components/schemas/NormalAcquisitionConditionRequest"
+          lottery: "#/components/schemas/LotteryAcquisitionConditionRequest"
+    NormalAcquisitionConditionRequest:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/AcquisitionConditionRequest"
+    LotteryAcquisitionConditionRequest:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/AcquisitionConditionRequest"
+        - type: object
+          required:
+            - lotteryProbability
+            - maxAcquireCount
+          properties:
+            lotteryProbability:
+              maximum: 99
+              minimum: 1
+              type: integer
+              format: int32
+              description: 在彩票类活动中赢得优惠券的概率（1-99）。
+            maxAcquireCount:
+              type: integer
+              format: int32
+              maximum: 999999
+              description: Maximum number of coupons that can be issued in total. 使用-1表示没有限制
+    CouponRewardRequest:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: Type of coupon. Determines the benefit provided.
+      discriminator:
+        propertyName: type
+        mapping:
+          cashBack: "#/components/schemas/CouponCashBackRewardRequest"
+          discount: "#/components/schemas/CouponDiscountRewardRequest"
+          free: "#/components/schemas/CouponFreeRewardRequest"
+          gift: "#/components/schemas/CouponGiftRewardRequest"
+          others: "#/components/schemas/CouponOthersRewardRequest"
+    CouponCashBackRewardRequest:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CouponRewardRequest"
+        - type: object
+          properties:
+            priceInfo:
+              $ref: "#/components/schemas/CashBackPriceInfoRequest"
+    CouponDiscountRewardRequest:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CouponRewardRequest"
+        - type: object
+          properties:
+            priceInfo:
+              $ref: "#/components/schemas/DiscountPriceInfoRequest"
+    CouponFreeRewardRequest:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CouponRewardRequest"
+    CouponGiftRewardRequest:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CouponRewardRequest"
+    CouponOthersRewardRequest:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CouponRewardRequest"
+    CashBackPriceInfoRequest:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          fixed: "#/components/schemas/CashBackFixedPriceInfoRequest"
+          percentage: "#/components/schemas/CashBackPercentagePriceInfoRequest"
+    CashBackFixedPriceInfoRequest:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CashBackPriceInfoRequest"
+        - type: object
+          properties:
+            fixedAmount:
+              type: integer
+              format: int64
+    CashBackPercentagePriceInfoRequest:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CashBackPriceInfoRequest"
+        - type: object
+          properties:
+            percentage:
+              maximum: 99
+              minimum: 1
+              type: integer
+              format: int32
+              description: 将现金返还率指定为百分比。 Must be an integer between 1 and 99.
+    DiscountPriceInfoRequest:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          fixed: "#/components/schemas/DiscountFixedPriceInfoRequest"
+          percentage: "#/components/schemas/DiscountPercentagePriceInfoRequest"
+          explicit: "#/components/schemas/DiscountExplicitPriceInfoRequest"
+    DiscountFixedPriceInfoRequest:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/DiscountPriceInfoRequest"
+        - type: object
+          properties:
+            fixedAmount:
+              type: integer
+              format: int64
+    DiscountPercentagePriceInfoRequest:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/DiscountPriceInfoRequest"
+        - type: object
+          properties:
+            percentage:
+              maximum: 99
+              minimum: 1
+              type: integer
+              format: int32
+              description: 将折扣率指定为百分比。 必须是 1 到 99 之间的整数。
+    DiscountExplicitPriceInfoRequest:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/DiscountPriceInfoRequest"
+        - type: object
+          properties:
+            priceAfterDiscount:
+              type: integer
+              format: int64
+            originalPrice:
+              type: integer
+              format: int64
+    CouponCreateResponse:
+      description: 创建优惠券后返回的响应对象。 包含优惠券 ID。
+      required:
+        - couponId
+      type: object
+      properties:
+        couponId:
+          type: string
+          description: 优惠券的唯一标识符。
+    CouponResponse:
+      description: 有关优惠券的详细信息，包括所有属性和当前状态。
+      type: object
+      properties:
+        acquisitionCondition:
+          $ref: "#/components/schemas/AcquisitionConditionResponse"
+        barcodeImageUrl:
+          type: string
+          description: 与优惠券关联的条形码图像的 URL。 用于店内兑换。
+          format: uri
+        couponCode:
+          type: string
+          description: 用户兑换优惠券时需出示的唯一代码。
+        description:
+          type: string
+          description: 优惠券的详细说明。 显示给用户。
+        endTimestamp:
+          type: integer
+          description: 优惠券过期时间（纪元秒）。 在此时间之后优惠券将无法使用。
+          format: int64
+        imageUrl:
+          type: string
+          description: 代表优惠券的主图像的 URL。 显示在优惠券列表中。
+          format: uri
+        maxAcquireCount:
+          type: integer
+          format: int64
+          description: 总共可以发放的优惠券最大张数。
+        maxUseCountPerTicket:
+          type: integer
+          format: int32
+          description: 单张优惠券的最大使用次数。
+        maxTicketPerUser:
+          type: integer
+          format: int64
+          description: 单个用户最多可获取优惠券数量。
+        startTimestamp:
+          type: integer
+          description: 优惠券开始时间（纪元秒）。 从这个时候开始就可以使用优惠券了。
+          format: int64
+        title:
+          type: string
+          description: 优惠券的标题。 显示在优惠券列表中。
+        usageCondition:
+          type: string
+          description: 使用优惠券的条件。 展示给用户。
+        reward:
+          $ref: "#/components/schemas/CouponRewardResponse"
+        visibility:
+          type: string
+          description: 优惠券的可见性。 确定谁可以看到或获取优惠券。
+          enum:
+            - UNLISTED
+            - PUBLIC
+            - PRIVATE
+        timezone:
+          type: string
+          description: 用于解释开始和结束时间戳的时区。
+          enum:
+            - ETC_GMT_MINUS_12
+            - ETC_GMT_MINUS_11
+            - PACIFIC_HONOLULU
+            - AMERICA_ANCHORAGE
+            - AMERICA_LOS_ANGELES
+            - AMERICA_PHOENIX
+            - AMERICA_CHICAGO
+            - AMERICA_NEW_YORK
+            - AMERICA_CARACAS
+            - AMERICA_SANTIAGO
+            - AMERICA_ST_JOHNS
+            - AMERICA_SAO_PAULO
+            - ETC_GMT_MINUS_2
+            - ATLANTIC_CAPE_VERDE
+            - EUROPE_LONDON
+            - EUROPE_PARIS
+            - EUROPE_ISTANBUL
+            - EUROPE_MOSCOW
+            - ASIA_TEHRAN
+            - ASIA_TBILISI
+            - ASIA_KABUL
+            - ASIA_TASHKENT
+            - ASIA_COLOMBO
+            - ASIA_KATHMANDU
+            - ASIA_ALMATY
+            - ASIA_RANGOON
+            - ASIA_BANGKOK
+            - ASIA_TAIPEI
+            - ASIA_TOKYO
+            - AUSTRALIA_DARWIN
+            - AUSTRALIA_SYDNEY
+            - ASIA_VLADIVOSTOK
+            - ETC_GMT_PLUS_12
+            - PACIFIC_TONGATAPU
+        couponId:
+          type: string
+          description: 优惠券的唯一标识符。
+        createdTimestamp:
+          type: integer
+          description: 优惠券的创建时间戳（秒）。
+          format: int64
+        status:
+          type: string
+          description: 优惠券的当前状态。
+          enum:
+            - DRAFT
+            - RUNNING
+            - CLOSED
+    AcquisitionConditionResponse:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: 确定优惠券的分发或使用方式。
+      discriminator:
+        propertyName: type
+        mapping:
+          normal: "#/components/schemas/NormalAcquisitionConditionResponse"
+          lottery: "#/components/schemas/LotteryAcquisitionConditionResponse"
+          referral: "#/components/schemas/ReferralAcquisitionConditionResponse"
+    NormalAcquisitionConditionResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/AcquisitionConditionResponse"
+    LotteryAcquisitionConditionResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/AcquisitionConditionResponse"
+        - type: object
+          properties:
+            lotteryProbability:
+              type: integer
+              format: int32
+            maxAcquireCount:
+              type: integer
+              format: int32
+    ReferralAcquisitionConditionResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/AcquisitionConditionResponse"
+    CouponRewardResponse:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: 优惠券类型。 确定所提供的好处。
+      discriminator:
+        propertyName: type
+        mapping:
+          cashBack: "#/components/schemas/CouponCashBackRewardResponse"
+          discount: "#/components/schemas/CouponDiscountRewardResponse"
+          free: "#/components/schemas/CouponFreeRewardResponse"
+          gift: "#/components/schemas/CouponGiftRewardResponse"
+          others: "#/components/schemas/CouponOthersRewardResponse"
+    CouponCashBackRewardResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CouponRewardResponse"
+        - type: object
+          properties:
+            priceInfo:
+              $ref: "#/components/schemas/CashBackPriceInfoResponse"
+    CouponDiscountRewardResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CouponRewardResponse"
+        - type: object
+          properties:
+            priceInfo:
+              $ref: "#/components/schemas/DiscountPriceInfoResponse"
+    CouponFreeRewardResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CouponRewardResponse"
+    CouponGiftRewardResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CouponRewardResponse"
+    CouponOthersRewardResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CouponRewardResponse"
+    CashBackPriceInfoResponse:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          fixed: "#/components/schemas/CashBackFixedPriceInfoResponse"
+          percentage: "#/components/schemas/CashBackPercentagePriceInfoResponse"
+    CashBackFixedPriceInfoResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CashBackPriceInfoResponse"
+        - type: object
+          properties:
+            currency:
+              type: string
+              description: 货币代码（例如 JPY、THB、TWD）。
+              enum:
+                - JPY
+                - THB
+                - TWD
+            fixedAmount:
+              type: integer
+              format: int64
+    CashBackPercentagePriceInfoResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CashBackPriceInfoResponse"
+        - type: object
+          properties:
+            percentage:
+              type: integer
+              format: int32
+    DiscountPriceInfoResponse:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          fixed: "#/components/schemas/DiscountFixedPriceInfoResponse"
+          percentage: "#/components/schemas/DiscountPercentagePriceInfoResponse"
+          explicit: "#/components/schemas/DiscountExplicitPriceInfoResponse"
+    DiscountFixedPriceInfoResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/DiscountPriceInfoResponse"
+        - type: object
+          properties:
+            currency:
+              type: string
+              description: 货币代码（例如 JPY、THB、TWD）。
+              enum:
+                - JPY
+                - THB
+                - TWD
+            fixedAmount:
+              type: integer
+              format: int64
+    DiscountPercentagePriceInfoResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/DiscountPriceInfoResponse"
+        - type: object
+          properties:
+            percentage:
+              type: integer
+              format: int32
+    DiscountExplicitPriceInfoResponse:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/DiscountPriceInfoResponse"
+        - type: object
+          properties:
+            currency:
+              type: string
+              description: 货币代码（例如 JPY、THB、TWD）。
+              enum:
+                - JPY
+                - THB
+                - TWD
+            priceAfterDiscount:
+              type: integer
+              format: int64
+            originalPrice:
+              type: integer
+              format: int64
+    MessagingApiPagerCouponListResponse:
+      description: 包含优惠券列表的分页响应对象。
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CouponListResponse"
+          description: 优惠券摘要对象列表。
+        next:
+          type: string
+          description: 用于获取下一页结果的令牌。
+    CouponListResponse:
+      description: 有关优惠券的摘要信息，用于优惠券列表。
+      required:
+        - couponId
+        - title
+      type: object
+      properties:
+        couponId:
+          type: string
+          description: 优惠券的唯一标识符。
+        title:
+          type: string
+          description: 优惠券的标题。 显示在优惠券列表中。
+    ShowLoadingAnimationRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#display-a-loading-indicator-request-body
+      required:
+        - chatId
+      type: object
+      properties:
+        chatId:
+          type: string
+          description: 需要显示加载动画的目标用户的用户ID。
+        loadingSeconds:
+          type: integer
+          format: int32
+          maximum: 60
+          minimum: 5
+          description: |-
+            显示加载指示器的秒数。 
+            必须是 5 的倍数。最大值为 60 秒。
+    ShowLoadingAnimationResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#display-a-loading-indicator-response
+      type: object
+    MarkMessagesAsReadByTokenRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#mark-as-read-request-body
+      required:
+        - markAsReadToken
+      type: object
+      properties:
+        markAsReadToken:
+          type: string
+          description: 用于将消息标记为已读的令牌。
+    ErrorResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#error-responses
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: 包含有关错误的信息的消息。
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorDetail"
+          description: 错误详细信息的数组。 如果数组为空，则该属性将不会包含在响应中。
+        sentMessages:
+          description: 已发送消息的数组。
+          maxItems: 5
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/SentMessage"
+    ErrorDetail:
+      type: object
+      properties:
+        message:
+          type: string
+          description: 错误的详细信息。 在某些情况下不包含在响应中。
+        property:
+          type: string
+          description: 发生错误的位置。 返回请求的 JSON 字段名称或查询参数名称。 在某些情况下不包含在响应中。

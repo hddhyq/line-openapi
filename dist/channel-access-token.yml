@@ -1,0 +1,439 @@
+openapi: 3.0.0
+info:
+  title: 通道访问令牌 API
+  version: 0.0.1
+  description: 本文档描述了通道访问令牌 API。
+servers:
+  - url: https://api.line.me
+tags:
+  - name: channel-access-token
+paths:
+  /oauth2/v3/token:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#issue-stateless-channel-access-token
+      tags:
+        - channel-access-token
+      operationId: issueStatelessChannelToken
+      description: |-
+        发出新的无状态通道访问令牌，该令牌没有最大活动令牌限制
+         与其他令牌类型不同。 
+        新发行的token有效期只有15分钟，但在自然过期之前无法撤销。
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/IssueStatelessChannelTokenByJWTAssertionRequest"
+                - $ref: "#/components/schemas/IssueStatelessChannelTokenByClientSecretRequest"
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IssueStatelessChannelAccessTokenResponse"
+              example:
+                token_type: Bearer
+                access_token: eyJhbGciOiJIUz.....
+                expires_in: 899
+  /oauth2/v2.1/tokens/kid:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-all-valid-channel-access-token-key-ids-v2-1
+      tags:
+        - channel-access-token
+      operationId: getsAllValidChannelAccessTokenKeyIds
+      description: 获取所有有效的通道访问令牌密钥 ID。
+      parameters:
+        - name: client_assertion_type
+          in: query
+          required: true
+          description: "`urn:ietf:params:oauth:客户端断言类型:jwt-bearer`"
+          schema:
+            type: string
+        - name: client_assertion
+          in: query
+          required: true
+          description: 客户端需要创建 JSON Web 令牌 (JWT)（打开新窗口）并使用私钥进行签名。
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelAccessTokenKeyIdsResponse"
+              example:
+                kids:
+                  - U_gdnFYKTWRxxxxDVZexGg
+                  - sDTOzw5wIfWxxxxzcmeQA
+                  - 73hDyp3PxGfxxxxD6U5qYA
+                  - FHGanaP79smDxxxxyPrVw
+                  - CguB-0kxxxxdSM3A5Q_UtQ
+                  - G82YP96jhHwyKSxxxx7IFA
+  /oauth2/v2.1/token:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#issue-channel-access-token-v2-1
+      tags:
+        - channel-access-token
+      operationId: issueChannelTokenByJWT
+      description: 发出通道访问令牌，允许您指定所需的到期日期。 此方法允许您使用 JWT 断言进行身份验证。
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              description: IssueChannelTokenByJWT 的请求
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                  description: 客户凭证
+                client_assertion_type:
+                  type: string
+                  description: urn:ietf:params:oauth:客户端断言类型:jwt-bearer
+                client_assertion:
+                  type: string
+                  description: 客户端需要创建并使用断言签名密钥的私钥进行签名的 JSON Web 令牌。
+              required:
+                - grant_type
+                - client_assertion_type
+                - client_assertion
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IssueChannelAccessTokenResponse"
+              example:
+                access_token: eyJhbGciOiJIUz.....
+                token_type: Bearer
+                expires_in: 2592000
+                key_id: sDTOzw5wIfxxxxPEzcmeQA
+  /oauth2/v2.1/verify:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#verify-channel-access-token-v2-1
+      tags:
+        - channel-access-token
+      operationId: verifyChannelTokenByJWT
+      description: 您可以验证具有用户指定过期时间的通道访问令牌（通道访问令牌 v2.1）是否有效。
+      parameters:
+        - name: access_token
+          in: query
+          required: true
+          description: 具有用户指定过期时间的通道访问令牌（通道访问令牌 v2.1）。
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifyChannelAccessTokenResponse"
+              example:
+                client_id: "1573163733"
+                expires_in: 2591659
+                scope: profile chat_message.write
+  /oauth2/v2.1/revoke:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#revoke-channel-access-token-v2-1
+      tags:
+        - channel-access-token
+      operationId: revokeChannelTokenByJWT
+      description: 撤销通道访问令牌 v2.1
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              description: revokeChannelTokenByJWT 的请求
+              type: object
+              properties:
+                client_id:
+                  type: string
+                  description: 通道号
+                client_secret:
+                  type: string
+                  description: 频道秘密
+                access_token:
+                  type: string
+                  description: 通道访问令牌
+              required:
+                - client_id
+                - client_secret
+                - access_token
+      responses:
+        "200":
+          description: 好的
+  /v2/oauth/accessToken:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#issue-shortlived-channel-access-token
+      tags:
+        - channel-access-token
+      operationId: issueChannelToken
+      description: 发出短期通道访问令牌
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              description: 请求issueChannelToken
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                  description: "`client_credentials`"
+                  example: client_credentials
+                client_id:
+                  type: string
+                  description: 频道 ID。
+                client_secret:
+                  type: string
+                  description: 频道秘密。
+              required:
+                - grant_type
+                - client_id
+                - client_secret
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IssueShortLivedChannelAccessTokenResponse"
+              example:
+                access_token: W1TeHCgfH2Liwa.....
+                expires_in: 2592000
+                token_type: Bearer
+        "400":
+          description: 错误的请求
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: invalid_request
+                error_description: some parameters missed or invalid
+  /v2/oauth/verify:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#verify-channel-access-token
+      tags:
+        - channel-access-token
+      operationId: verifyChannelToken
+      description: 验证短期和长期通道访问令牌的有效性
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              description: verifyChannelToken 的请求
+              type: object
+              properties:
+                access_token:
+                  description: 短期或长期的通道访问令牌。
+                  type: string
+              required:
+                - access_token
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifyChannelAccessTokenResponse"
+              example:
+                client_id: "1350031035"
+                expires_in: 3138007490
+                scope: P CM
+  /v2/oauth/revoke:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#revoke-longlived-or-shortlived-channel-access-token
+      tags:
+        - channel-access-token
+      operationId: revokeChannelToken
+      description: 撤销短期或长期通道访问令牌
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              description: revokeChannelToken 的请求。
+              type: object
+              properties:
+                access_token:
+                  description: 通道访问令牌
+                  type: string
+              required:
+                - access_token
+      responses:
+        "200":
+          description: 好的
+components:
+  schemas:
+    IssueStatelessChannelTokenByJWTAssertionRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#issue-stateless-channel-access-token
+      description: 请求正文通过 JWT 断言颁发新令牌
+      type: object
+      required:
+        - grant_type
+        - client_assertion
+        - client_assertion_type
+      properties:
+        grant_type:
+          type: string
+          enum:
+            - client_credentials
+          description: 客户凭证
+        client_assertion_type:
+          type: string
+          enum:
+            - urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+          description: "`urn:ietf:params:oauth:client-assertion-type:jwt-bearer` 的 URL 编码值"
+        client_assertion:
+          type: string
+          description: 客户端需要创建并使用断言签名密钥的私钥进行签名的 JSON Web 令牌。
+    IssueStatelessChannelTokenByClientSecretRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#issue-stateless-channel-access-token
+      description: 请求正文使用“client_id”和“client_secret”颁发新令牌
+      type: object
+      required:
+        - grant_type
+        - client_id
+        - client_secret
+      properties:
+        grant_type:
+          type: string
+          enum:
+            - client_credentials
+          description: "`client_credentials`"
+        client_id:
+          type: string
+          description: 频道 ID。
+        client_secret:
+          type: string
+          description: 频道秘密。
+    IssueStatelessChannelAccessTokenResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#issue-stateless-channel-access-token
+      description: 颁发无状态通道访问令牌
+      required:
+        - access_token
+        - expires_in
+        - token_type
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: |-
+            无状态通道访问令牌。 
+            令牌是一个不透明的字符串，这意味着它的格式是一个实现细节
+             并且该令牌的使用者永远不应该尝试使用从令牌解析的数据。
+        expires_in:
+          type: integer
+          format: int32
+          description: 颁发的访问令牌过期之前的持续时间（以秒为单位）
+        token_type:
+          type: string
+          default: Bearer
+          description: 令牌类型。 该值始终是“Bearer”。
+    ChannelAccessTokenKeyIdsResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#get-all-valid-channel-access-token-key-ids-v2-1
+      description: 通道访问令牌密钥 ID
+      required:
+        - kids
+      type: object
+      properties:
+        kids:
+          description: 通道访问令牌密钥 ID 数组。
+          type: array
+          items:
+            type: string
+    IssueShortLivedChannelAccessTokenResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#issue-shortlived-channel-access-token
+      description: 发布短期通道访问令牌
+      required:
+        - access_token
+        - expires_in
+        - token_type
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: |-
+            短暂的通道访问令牌。 有效期为 30 天。 
+            注意：通道访问令牌无法刷新。
+        expires_in:
+          type: integer
+          format: int32
+          description: 从令牌颁发之日起，到通道访问令牌到期的时间（以秒为单位）。
+        token_type:
+          type: string
+          default: Bearer
+          description: 令牌类型。 该值始终是“Bearer”。
+    IssueChannelAccessTokenResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#issue-channel-access-token-v2-1
+      description: 已发布通道访问令牌
+      required:
+        - access_token
+        - expires_in
+        - token_type
+        - key_id
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: 通道访问令牌。
+        expires_in:
+          type: integer
+          format: int32
+          description: 从通道访问令牌发出到过期的时间（以秒为单位）
+        token_type:
+          type: string
+          default: Bearer
+          description: 令牌类型。
+        key_id:
+          type: string
+          description: 用于标识通道访问令牌的唯一密钥 ID。
+    VerifyChannelAccessTokenResponse:
+      description: 验证结果
+      required:
+        - client_id
+        - expires_in
+      type: object
+      properties:
+        client_id:
+          type: string
+          description: 为其颁发通道访问令牌的通道 ID。
+        expires_in:
+          type: integer
+          format: int64
+          description: 通道访问令牌过期之前的秒数。
+        scope:
+          type: string
+          description: 授予通道访问令牌的权限。
+    ErrorResponse:
+      description: 通道访问令牌的错误响应
+      type: object
+      properties:
+        error:
+          description: 错误总结
+          type: string
+        error_description:
+          description: 错误的详细信息。 在某些情况下不返回。
+          type: string

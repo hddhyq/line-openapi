@@ -1,0 +1,884 @@
+openapi: 3.0.3
+info:
+  title: Webhook 类型定义
+  description: LINE Messaging API 的 Webhook 事件定义
+  version: 1.0.0
+servers:
+  - url: https://example.com
+tags:
+  - name: dummy
+paths:
+  /callback:
+    post:
+      operationId: callback
+      tags:
+        - dummy
+      description: This is the dummy endpoint to generate the model classes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CallbackRequest"
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                description: 虚拟响应
+                type: string
+                example: OK
+components:
+  schemas:
+    CallbackRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#request-body
+      description: 请求正文包含一个 JSON 对象，其中包含应接收 Webhook 事件的机器人的用户 ID 和 Webhook 事件对象的数组。
+      type: object
+      required:
+        - destination
+        - events
+      properties:
+        destination:
+          type: string
+          description: |-
+            应接收 Webhook 事件的机器人的用户 ID。 
+            用户 ID 值是与正则表达式“U[0-9a-f]{32}”匹配的字符串。
+          pattern: ^U[0-9a-f]{32}$
+          maxLength: 33
+          minLength: 33
+        events:
+          description: |-
+            Webhook 事件对象数组。 
+            LINE 平台可能会发送一个不包含 webhook 事件对象的空数组来确认通信。
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+    Event:
+      description: Webhook 事件
+      required:
+        - type
+        - timestamp
+        - mode
+        - webhookEventId
+        - deliveryContext
+      type: object
+      properties:
+        type:
+          type: string
+          description: 事件类型
+        source:
+          $ref: "#/components/schemas/Source"
+        timestamp:
+          type: integer
+          format: int64
+          description: 事件发生的时间（以毫秒为单位）。
+        mode:
+          $ref: "#/components/schemas/EventMode"
+        webhookEventId:
+          type: string
+          description: Webhook 事件 ID。 唯一标识 Webhook 事件的 ID。 这是 ULID 格式的字符串。
+        deliveryContext:
+          $ref: "#/components/schemas/DeliveryContext"
+      discriminator:
+        propertyName: type
+        mapping:
+          message: "#/components/schemas/MessageEvent"
+          unsend: "#/components/schemas/UnsendEvent"
+          follow: "#/components/schemas/FollowEvent"
+          unfollow: "#/components/schemas/UnfollowEvent"
+          join: "#/components/schemas/JoinEvent"
+          leave: "#/components/schemas/LeaveEvent"
+          memberJoined: "#/components/schemas/MemberJoinedEvent"
+          memberLeft: "#/components/schemas/MemberLeftEvent"
+          postback: "#/components/schemas/PostbackEvent"
+          videoPlayComplete: "#/components/schemas/VideoPlayCompleteEvent"
+          beacon: "#/components/schemas/BeaconEvent"
+          accountLink: "#/components/schemas/AccountLinkEvent"
+          membership: "#/components/schemas/MembershipEvent"
+          module: "#/components/schemas/ModuleEvent"
+          activated: "#/components/schemas/ActivatedEvent"
+          deactivated: "#/components/schemas/DeactivatedEvent"
+          botSuspended: "#/components/schemas/BotSuspendedEvent"
+          botResumed: "#/components/schemas/BotResumedEvent"
+          delivery: "#/components/schemas/PnpDeliveryCompletionEvent"
+    EventMode:
+      type: string
+      description: 通道状态。
+      enum:
+        - active
+        - standby
+    DeliveryContext:
+      type: object
+      description: webhook 的传递上下文信息
+      required:
+        - isRedelivery
+      properties:
+        isRedelivery:
+          type: boolean
+          description: Webhook 事件是否是重新传递的事件。
+    Source:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#source-user
+      description: 事件的来源。
+      required:
+        - type
+      type: object
+      properties:
+        type:
+          type: string
+          description: 源类型
+      discriminator:
+        propertyName: type
+        mapping:
+          user: "#/components/schemas/UserSource"
+          group: "#/components/schemas/GroupSource"
+          room: "#/components/schemas/RoomSource"
+    UserSource:
+      allOf:
+        - $ref: "#/components/schemas/Source"
+        - type: object
+          required:
+            - type
+          properties:
+            userId:
+              type: string
+              description: 源用户ID
+    GroupSource:
+      allOf:
+        - $ref: "#/components/schemas/Source"
+        - type: object
+          required:
+            - type
+            - groupId
+          properties:
+            groupId:
+              type: string
+              description: 源群聊的群ID
+            userId:
+              type: string
+              description: 源用户ID。 仅包含在消息事件中。 userId 中仅包含 LINE for iOS 和 LINE for Android 的用户。
+    RoomSource:
+      allOf:
+        - $ref: "#/components/schemas/Source"
+        - type: object
+          required:
+            - type
+            - roomId
+          description: 源码多人聊天
+          properties:
+            userId:
+              type: string
+              description: 源用户ID。 仅包含在消息事件中。 userId 中仅包含 LINE for iOS 和 LINE for Android 的用户。
+            roomId:
+              type: string
+              description: 源多人聊天的房间ID
+    MessageEvent:
+      description: 包含发送消息的 Webhook 事件对象。
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - type
+            - message
+          properties:
+            replyToken:
+              type: string
+            message:
+              $ref: "#/components/schemas/MessageContent"
+    MessageContent:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#message-event
+      type: object
+      required:
+        - type
+        - id
+      properties:
+        type:
+          type: string
+          description: 类型
+        id:
+          type: string
+          description: 消息ID
+      discriminator:
+        propertyName: type
+        mapping:
+          text: "#/components/schemas/TextMessageContent"
+          image: "#/components/schemas/ImageMessageContent"
+          video: "#/components/schemas/VideoMessageContent"
+          audio: "#/components/schemas/AudioMessageContent"
+          file: "#/components/schemas/FileMessageContent"
+          location: "#/components/schemas/LocationMessageContent"
+          sticker: "#/components/schemas/StickerMessageContent"
+    ContentProvider:
+      description: 媒体文件的提供者。
+      required:
+        - type
+      type: object
+      properties:
+        type:
+          type: string
+          description: 图像文件的提供者。
+          enum:
+            - line
+            - external
+        originalContentUrl:
+          type: string
+          format: uri
+          description: 图像文件的 URL。 仅当 contentProvider.type 为外部时才包含。
+        previewImageUrl:
+          format: uri
+          type: string
+          description: 预览图像的 URL。 仅当 contentProvider.type 为外部时才包含。
+    TextMessageContent:
+      allOf:
+        - $ref: "#/components/schemas/MessageContent"
+        - type: object
+          required:
+            - text
+            - quoteToken
+          properties:
+            text:
+              type: string
+              description: 消息文本。
+            emojis:
+              description: 一个或多个 LINE 表情符号对象的数组。 仅当文本属性包含 LINE 表情符号时才包含在消息事件中。
+              type: array
+              items:
+                $ref: "#/components/schemas/Emoji"
+            mention:
+              $ref: "#/components/schemas/Mention"
+            quoteToken:
+              type: string
+              description: 引用令牌来引用此消息。
+            quotedMessageId:
+              type: string
+              description: 引用消息的消息 ID。 仅当收到的消息引用过去的消息时才包含在内。
+            markAsReadToken:
+              type: string
+              description: 用于将消息标记为已读的令牌。
+    Emoji:
+      required:
+        - index
+        - length
+        - productId
+        - emojiId
+      type: object
+      properties:
+        index:
+          type: integer
+          description: 文本中字符的索引位置，第一个字符位于位置 0。
+        length:
+          type: integer
+          description: LINE 表情符号字符串的长度。 对于 LINE 表情符号（你好），长度为 7。
+        productId:
+          type: string
+          description: LINE 表情符号集的产品 ID。
+        emojiId:
+          type: string
+          description: 集合内 LINE 表情符号的 ID。
+    Mention:
+      required:
+        - mentionees
+      type: object
+      properties:
+        mentionees:
+          description: 一个或多个提及对象的数组。 最多：20 次提及
+          type: array
+          items:
+            $ref: "#/components/schemas/Mentionee"
+    Mentionee:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#wh-text
+      required:
+        - type
+        - index
+        - length
+      type: object
+      properties:
+        type:
+          type: string
+          description: 提到的目标。
+        index:
+          type: integer
+          format: int32
+          description: 用户提及的文本中字符的索引位置，第一个字符位于位置 0。
+        length:
+          type: integer
+          format: int32
+          description: 所提及用户的文本长度。 对于提及@example，8 是长度。
+      discriminator:
+        propertyName: type
+        mapping:
+          user: "#/components/schemas/UserMentionee"
+          all: "#/components/schemas/AllMentionee"
+    UserMentionee:
+      description: 提到的目标是用户
+      allOf:
+        - $ref: "#/components/schemas/Mentionee"
+        - type: object
+          properties:
+            userId:
+              type: string
+              description: 所提及用户的用户 ID。 仅当提及.mentions[].type 为用户且用户同意 LINE 官方帐户获取其用户个人资料信息时才包含在内。
+            isSelf:
+              type: boolean
+              description: 所提到的用户是否是接收 webhook 的机器人。
+    AllMentionee:
+      description: 提到的目标是整个群体
+      allOf:
+        - $ref: "#/components/schemas/Mentionee"
+        - type: object
+    ImageMessageContent:
+      allOf:
+        - $ref: "#/components/schemas/MessageContent"
+        - type: object
+          required:
+            - contentProvider
+            - quoteToken
+          properties:
+            contentProvider:
+              $ref: "#/components/schemas/ContentProvider"
+            imageSet:
+              $ref: "#/components/schemas/ImageSet"
+            quoteToken:
+              type: string
+              description: 引用令牌来引用此消息。
+            markAsReadToken:
+              type: string
+              description: 用于将消息标记为已读的令牌。
+    ImageSet:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: 图像集 ID。 仅当同时发送多个图像时才包含。
+        index:
+          type: integer
+          description: 从1开始的索引，表示同时发送的一组图像中的图像编号。 仅当同时发送多个图像时才包含。 但是，如果发件人使用 Android 版 LINE 11.15 或更早版本，则不会包含该信息。
+        total:
+          type: integer
+          description: 同时发送的图像总数。
+    VideoMessageContent:
+      allOf:
+        - $ref: "#/components/schemas/MessageContent"
+        - type: object
+          required:
+            - contentProvider
+            - quoteToken
+          description: 包含从源发送的视频内容的消息对象。 预览图像显示在聊天中，点击图像时播放视频。
+          properties:
+            duration:
+              type: integer
+              format: int64
+              description: 视频文件长度（毫秒）
+            contentProvider:
+              $ref: "#/components/schemas/ContentProvider"
+            quoteToken:
+              type: string
+              description: 引用令牌来引用此消息。
+            markAsReadToken:
+              type: string
+              description: 用于将消息标记为已读的令牌。
+    AudioMessageContent:
+      allOf:
+        - $ref: "#/components/schemas/MessageContent"
+        - type: object
+          required:
+            - contentProvider
+          description: 包含从源发送的音频内容的消息对象。
+          properties:
+            contentProvider:
+              $ref: "#/components/schemas/ContentProvider"
+            duration:
+              type: integer
+              format: int64
+              description: 音频文件的长度（毫秒）
+            markAsReadToken:
+              type: string
+              description: 用于将消息标记为已读的令牌。
+    FileMessageContent:
+      allOf:
+        - $ref: "#/components/schemas/MessageContent"
+        - type: object
+          required:
+            - fileName
+            - fileSize
+          description: 包含从源发送的文件的消息对象。
+          properties:
+            fileName:
+              type: string
+              description: 文件名
+            fileSize:
+              type: integer
+              description: 文件大小（以字节为单位）
+            markAsReadToken:
+              type: string
+              description: 用于将消息标记为已读的令牌。
+    LocationMessageContent:
+      allOf:
+        - $ref: "#/components/schemas/MessageContent"
+        - type: object
+          required:
+            - latitude
+            - longitude
+          description: 包含从源发送的位置数据的消息对象。
+          properties:
+            title:
+              type: string
+              description: 标题
+            address:
+              type: string
+              description: 地址
+            latitude:
+              type: number
+              format: double
+              description: 纬度
+            longitude:
+              type: number
+              format: double
+              description: 经度
+            markAsReadToken:
+              type: string
+              description: 用于将消息标记为已读的令牌。
+    StickerMessageContent:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/messaging-api/#wh-sticker
+      allOf:
+        - $ref: "#/components/schemas/MessageContent"
+        - type: object
+          required:
+            - packageId
+            - stickerId
+            - stickerResourceType
+            - quoteToken
+          description: 包含从源发送的贴纸数据的消息对象。
+          properties:
+            packageId:
+              type: string
+              description: 封装ID
+            stickerId:
+              type: string
+              description: 贴纸ID
+            stickerResourceType:
+              type: string
+              enum:
+                - STATIC
+                - ANIMATION
+                - SOUND
+                - ANIMATION_SOUND
+                - POPUP
+                - POPUP_SOUND
+                - CUSTOM
+                - MESSAGE
+                - NAME_TEXT
+                - PER_STICKER_TEXT
+            keywords:
+              type: array
+              maxItems: 15
+              items:
+                type: string
+              description: |-
+                最多 15 个描述贴纸的关键字的数组。 
+                如果贴纸有 16 个或更多关键字，则将返回随机选择的 15 个关键字。 
+                每个事件的关键字选择是随机的，因此同一贴纸可能会返回不同的关键字。
+            text:
+              type: string
+              description: |-
+                用户输入的任何文本。 此属性仅适用于消息贴纸。 
+                最大字符数限制：100
+              maxLength: 100
+            quoteToken:
+              type: string
+              description: 引用令牌来引用此消息。
+            quotedMessageId:
+              type: string
+              description: 引用消息的消息 ID。 仅当收到的消息引用过去的消息时才包含在内。
+            markAsReadToken:
+              type: string
+              description: 用于将消息标记为已读的令牌。
+    UnsendEvent:
+      description: 用户取消发送消息时的事件对象。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - unsend
+          properties:
+            unsend:
+              $ref: "#/components/schemas/UnsendDetail"
+    UnsendDetail:
+      required:
+        - messageId
+      type: object
+      properties:
+        messageId:
+          type: string
+          description: 未发送消息的消息ID
+    FollowEvent:
+      description: 当您的 LINE 官方帐户被添加为好友（或解除阻止）时的事件对象。 您可以回复以下活动。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - replyToken
+            - follow
+          properties:
+            replyToken:
+              type: string
+              description: 回复令牌用于向此事件发送回复消息
+            follow:
+              $ref: "#/components/schemas/FollowDetail"
+    FollowDetail:
+      type: object
+      required:
+        - isUnblocked
+      properties:
+        isUnblocked:
+          type: boolean
+          description: 用户是否已将您的 LINE 官方帐户添加为好友或已解锁。
+    UnfollowEvent:
+      description: 当您的 LINE 官方帐户被阻止时的事件对象。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+    JoinEvent:
+      description: 当您的 LINE 官方帐户加入群聊或多人聊天时的事件对象。 您可以回复参加活动。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - replyToken
+          properties:
+            replyToken:
+              type: string
+              description: 回复令牌用于向此事件发送回复消息
+    LeaveEvent:
+      description: 当用户从群聊中删除您的 LINE 官方帐户或您的 LINE 官方帐户离开群聊或多人聊天时的事件对象。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+    MemberJoinedEvent:
+      description: 当用户加入 LINE 官方帐户所在的群聊或多人聊天时的事件对象。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - replyToken
+            - joined
+          properties:
+            replyToken:
+              type: string
+              description: 回复令牌用于向此事件发送回复消息
+            joined:
+              $ref: "#/components/schemas/JoinedMembers"
+    JoinedMembers:
+      required:
+        - members
+      type: object
+      properties:
+        members:
+          description: 加入的用户。 源用户对象数组。
+          type: array
+          items:
+            $ref: "#/components/schemas/UserSource"
+    MemberLeftEvent:
+      description: 当用户离开 LINE 官方帐户所在的群聊或多人聊天时的事件对象。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - left
+          properties:
+            left:
+              $ref: "#/components/schemas/LeftMembers"
+    LeftMembers:
+      required:
+        - members
+      type: object
+      properties:
+        members:
+          description: 离开的用户。 源用户对象数组。
+          type: array
+          items:
+            $ref: "#/components/schemas/UserSource"
+    PostbackEvent:
+      description: 当用户执行启动回发的回发操作时的事件对象。 您可以回复回发事件。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - postback
+          properties:
+            replyToken:
+              type: string
+              description: 回复令牌用于向此事件发送回复消息
+            postback:
+              $ref: "#/components/schemas/PostbackContent"
+    PostbackContent:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: string
+          description: 回发数据
+        params:
+          type: object
+          additionalProperties:
+            type: string
+    VideoPlayCompleteEvent:
+      description: 当用户使用 LINE 官方帐户发送的指定 TrackingId 至少观看一次视频时发生的事件。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - replyToken
+            - videoPlayComplete
+          properties:
+            replyToken:
+              type: string
+              description: 回复令牌用于向此事件发送回复消息
+            videoPlayComplete:
+              $ref: "#/components/schemas/VideoPlayComplete"
+    VideoPlayComplete:
+      required:
+        - trackingId
+      type: object
+      properties:
+        trackingId:
+          type: string
+          description: 用于识别视频的ID。 返回与分配给视频消息的trackingId相同的值。
+    BeaconEvent:
+      description: 当用户进入 LINE Beacon 范围时的事件对象。 您可以回复信标事件。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - replyToken
+            - beacon
+          properties:
+            replyToken:
+              type: string
+              description: 回复令牌用于向此事件发送回复消息
+            beacon:
+              $ref: "#/components/schemas/BeaconContent"
+    BeaconContent:
+      required:
+        - hwid
+        - type
+      type: object
+      properties:
+        hwid:
+          type: string
+          description: 检测到的信标的硬件 ID
+        type:
+          type: string
+          description: 信标事件的类型。
+          enum:
+            - enter
+            - banner
+            - stay
+        dm:
+          type: string
+          description: 检测到的信标的设备消息。
+    AccountLinkEvent:
+      description: 当用户将其 LINE 帐户与提供商的服务帐户链接时的事件对象。 您可以回复帐户链接事件。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - link
+          properties:
+            replyToken:
+              type: string
+              description: 回复令牌用于向此事件发送回复消息。 This property won't be included if linking the account has failed.
+            link:
+              $ref: "#/components/schemas/LinkContent"
+    LinkContent:
+      description: 帐户链接事件的内容。
+      required:
+        - result
+        - nonce
+      type: object
+      properties:
+        result:
+          type: string
+          enum:
+            - ok
+            - failed
+          description: 以下值之一指示关联帐户是否成功
+        nonce:
+          type: string
+          description: 验证用户ID时指定的nonce（使用一次的数字）。
+    MembershipEvent:
+      description: 此事件表示用户已订阅（加入）、取消订阅（左）或续订机器人的会员资格。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - replyToken
+            - membership
+          properties:
+            replyToken:
+              type: string
+              description: 回复令牌用于向此事件发送回复消息
+            membership:
+              $ref: "#/components/schemas/MembershipContent"
+    MembershipContent:
+      description: 会员活动内容。
+      required:
+        - type
+        - membershipId
+      type: object
+      properties:
+        type:
+          type: string
+          description: 会员活动的类型。
+      discriminator:
+        propertyName: type
+        mapping:
+          joined: "#/components/schemas/JoinedMembershipContent"
+          left: "#/components/schemas/LeftMembershipContent"
+          renewed: "#/components/schemas/RenewedMembershipContent"
+    JoinedMembershipContent:
+      allOf:
+        - $ref: "#/components/schemas/MembershipContent"
+        - type: object
+          required:
+            - membershipId
+          properties:
+            membershipId:
+              type: integer
+              description: 用户加入的会员ID。 这是为每个成员定义的。
+    LeftMembershipContent:
+      allOf:
+        - $ref: "#/components/schemas/MembershipContent"
+        - type: object
+          required:
+            - membershipId
+          properties:
+            membershipId:
+              type: integer
+              description: 用户离开的会员身份的 ID。 这是为每个成员定义的。
+    RenewedMembershipContent:
+      allOf:
+        - $ref: "#/components/schemas/MembershipContent"
+        - type: object
+          required:
+            - membershipId
+          properties:
+            membershipId:
+              type: integer
+              description: 用户续订的会员身份 ID。 这是为每个成员定义的。
+    ModuleEvent:
+      description: 该事件表示该模块频道已附加到LINE公众号。 发送到模块通道的 webhook URL 服务器。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - module
+          properties:
+            module:
+              $ref: "#/components/schemas/ModuleContent"
+    ModuleContent:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: 类型
+      discriminator:
+        propertyName: type
+        mapping:
+          attached: "#/components/schemas/AttachedModuleContent"
+          detached: "#/components/schemas/DetachedModuleContent"
+    AttachedModuleContent:
+      allOf:
+        - $ref: "#/components/schemas/ModuleContent"
+        - type: object
+          required:
+            - botId
+            - scopes
+          properties:
+            botId:
+              description: 附加的 LINE 官方帐户上的机器人的用户 ID
+              type: string
+            scopes:
+              description: 一个字符串数组，表示 LINE 官方帐户管理员允许的范围。
+              type: array
+              items:
+                type: string
+    DetachedModuleContent:
+      allOf:
+        - $ref: "#/components/schemas/ModuleContent"
+        - type: object
+          required:
+            - botId
+            - reason
+          properties:
+            botId:
+              description: 分离的 LINE 官方帐户机器人用户 ID
+              type: string
+            reason:
+              description: 分离原因
+              type: string
+              enum:
+                - bot_deleted
+    ActivatedEvent:
+      description: 该事件表示模块通道已通过调用 Acquire Control API 切换到 Active Channel。 发送到模块通道的 webhook URL 服务器。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - chatControl
+          properties:
+            chatControl:
+              $ref: "#/components/schemas/ChatControl"
+    ChatControl:
+      required:
+        - expireAt
+      type: object
+      properties:
+        expireAt:
+          type: integer
+          format: int64
+    DeactivatedEvent:
+      description: 该事件表明模块通道已通过调用 Acquire Control API 或 Release Control API 切换到 Standby Channel。 发送到模块通道的 webhook URL 服务器。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+    BotSuspendedEvent:
+      description: 此事件表示LINE官方帐号已被暂停（Suspend）。 发送到模块通道的 webhook URL 服务器。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+    BotResumedEvent:
+      description: 此事件表明LINE官方账号已从暂停状态恢复。 发送到模块通道的 webhook URL 服务器。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+    PnpDeliveryCompletionEvent:
+      description: 当向 LINE 通知消息 API 发出请求并完成向用户传送 LINE 通知消息时，专用 Webhook 事件（传送完成事件）将从 LINE 平台发送到机器人服务器的 Webhook URL。
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          required:
+            - delivery
+          properties:
+            delivery:
+              $ref: "#/components/schemas/PnpDelivery"
+    PnpDelivery:
+      description: 包含哈希电话号码字符串或“X-Line-Delivery-Tag”标头指定的字符串的传递对象
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: string
+          description: 哈希电话号码字符串或由“X-Line-Delivery-Tag”标头指定的字符串

@@ -1,0 +1,71 @@
+openapi: 3.0.0
+info:
+  title: 任务贴纸 API
+  version: 0.0.1
+  description: 本文档描述了 LINE 任务贴纸 API。
+servers:
+  - url: https://api.line.me
+security:
+  - Bearer: []
+tags:
+  - name: shop
+paths:
+  /shop/v3/mission:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#send-mission-stickers-v3
+      tags:
+        - shop
+      operationId: missionStickerV3
+      description: 发送任务贴纸。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MissionStickerRequest"
+        required: true
+      responses:
+        "200":
+          description: 返回状态代码 200 和空响应正文。
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      description: 通道访问令牌
+  schemas:
+    MissionStickerRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#send-mission-stickers-v3
+      description: 发送任务贴纸 (v3)
+      required:
+        - to
+        - productId
+        - productType
+        - sendPresentMessage
+      type: object
+      properties:
+        to:
+          type: string
+          description: 目标用户ID
+        productId:
+          type: string
+          description: 一组贴纸的包裹 ID
+        productType:
+          type: string
+          description: "`贴纸`"
+          example: STICKER
+        sendPresentMessage:
+          type: boolean
+          description: "`假`"
+          example: false
+    ErrorResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#send-mission-stickers-v3
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: 包含有关错误的信息的消息。

@@ -1,0 +1,205 @@
+openapi: 3.0.0
+info:
+  title: LINE 消息 API
+  version: 0.0.1
+  description: 本文档描述了 LINE 消息 API。
+servers:
+  - url: https://api.line.me
+security:
+  - Bearer: []
+tags:
+  - name: line-module
+paths:
+  /v2/bot/channel/detach:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#unlink-detach-module-channel-by-operation-mc-admin
+      tags:
+        - line-module
+      operationId: detachModule
+      description: 模块频道管理员调用 Detach API 将模块频道与 LINE 公众号分离。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DetachModuleRequest"
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/chat/{chatId}/control/acquire:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#acquire-control-api
+      tags:
+        - line-module
+      operationId: acquireChatControl
+      description: |-
+        如果备用通道想要采取主动（聊天控制），它会调用获取控制 API。 
+        先前为活动频道的频道将自动切换为备用频道。
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          description: "`userId`、`roomId` 或 `groupId`"
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcquireChatControlRequest"
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/chat/{chatId}/control/release:
+    post:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#release-control-api
+      tags:
+        - line-module
+      operationId: releaseChatControl
+      description: 如需将活动通道的主动权（聊天控制）返回给主通道，请调用释放控制 API。
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          description: "`userId`、`roomId` 或 `groupId`"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 好的
+  /v2/bot/list:
+    get:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#get-multiple-bot-info-api
+      tags:
+        - line-module
+      operationId: getModules
+      description: 获取已附加模块频道的多个LINE公众号的机器人的基本信息列表。
+      parameters:
+        - name: start
+          in: query
+          required: false
+          description: |-
+            在响应中返回的 JSON 对象的下一个属性中找到的继续标记的值。 
+            如果您无法在一次请求中获取有关机器人的所有基本信息，请包含此参数以获取剩余的数组。
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: |-
+            指定您从中获取基本信息的机器人的最大数量。 默认值为 100。 
+            最大值：100
+          schema:
+            type: integer
+            format: int32
+            default: 100
+            maximum: 100
+      responses:
+        "200":
+          description: 好的
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetModulesResponse"
+              example:
+                bots:
+                  - userId: Uf2dd6e8b081d2ff9c05c98a8a8b269c9
+                    basicId: "@628..."
+                    displayName: Test01
+                    pictureUrl: https://profile.line-scdn.net/0hyxytJNAlJldEDQzlatVZAHhIKDoz...
+                  - userId: Ua831d37bfe8232808202b85127663f70
+                    basicId: "@076lu..."
+                    displayName: Test02
+                    pictureUrl: https://profile.line-scdn.net/0hohnizdyzMEdTECbnVo9PEG9VPiok...
+                  - userId: Ub77ea431fba86f7c159a0c0f5be43d9f
+                    basicId: "@290n..."
+                    displayName: Test03
+                  - userId: Ub8ec80a14e879e9c6833fb4cee0e632b
+                    basicId: "@793j..."
+                    displayName: Test04
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      description: 通道访问令牌
+  schemas:
+    DetachModuleRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#unlink-detach-module-channel-by-operation-mc-admin
+      type: object
+      description: 通过模块通道管理员的操作解除模块通道的链接（分离）
+      properties:
+        botId:
+          description: 附加到模块频道的 LINE 官方帐户机器人的用户 ID。
+          type: string
+    AcquireChatControlRequest:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#acquire-control-api
+      description: Acquire Control API 的请求实体
+      type: object
+      properties:
+        expired:
+          type: boolean
+          description: |-
+            `True`：超过时间限制 (ttl) 后，主动权（聊天控制）将返回到主频道。 （默认）
+             “错误”：没有时间限制，并且主动性（聊天控制）不会随时间变化。
+          example: true
+        ttl:
+          type: integer
+          format: int32
+          maximum: 31536000
+          description: |-
+            主动（聊天控制）返回主通道所需的时间（模块通道停留在活动通道上的时间）。 
+            该值以秒为单位指定。 最大值为一年 (3600 * 24 * 365)。 
+            默认值为 3600（1 小时）。 
+
+            * 如果过期值为 false，则忽略。
+          example: 3600
+    GetModulesResponse:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#get-multiple-bot-info-api
+      description: 模块附加到的机器人列表
+      required:
+        - bots
+      type: object
+      properties:
+        bots:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModuleBot"
+          description: Bot 列表 Item 对象的数组，表示有关机器人的基本信息。
+        next:
+          type: string
+          description: |-
+            继续令牌。 
+            用于获取下一组基本机器人信息。 
+            仅当有更多未返回结果时才返回此属性。
+    ModuleBot:
+      externalDocs:
+        url: https://developers.line.biz/en/reference/partner-docs/#get-multiple-bot-info-api
+      description: 有关机器人的基本信息。
+      required:
+        - userId
+        - basicId
+        - displayName
+      type: object
+      properties:
+        userId:
+          type: string
+          description: 机器人的用户 ID
+        basicId:
+          type: string
+          description: 机器人的基本ID
+        premiumId:
+          type: string
+          description: 机器人的高级 ID。 如果未设置高级 ID，则不会包含在响应中。
+        displayName:
+          type: string
+          description: 机器人的显示名称
+        pictureUrl:
+          type: string
+          description: 个人资料图像 URL。 以“https://”开头的图像 URL。 如果机器人没有个人资料图片，则不包含在响应中。
